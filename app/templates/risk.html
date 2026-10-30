@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <script src="{{ XADMIN }}/js/echarts/echarts.js"></script>
+  <style>
+    .toolbar { padding:10px 12px; background:#fff; border:1px solid #eee; }
+    .toolbar .layui-form-item { margin-bottom:0; }
+    .cards { display:flex; gap:10px; margin-top:10px; }
+    .card { flex:1; background:#fff; border:1px solid #eee; padding:14px 18px; }
+    .card .num { font-size:26px; font-weight:500; }
+    .card .lbl { color:#888; font-size:12px; margin-top:4px; }
+    .chart-box { background:#fff;border:1px solid #eee;margin-top:10px;padding:10px; }
+    .grid-wrap { background:#fff; border:1px solid #eee; margin-top:10px; padding:2px 0; overflow:auto; }
+    table.risk { width:100%; border-collapse:collapse; font-size:12px; }
+    table.risk th { background:#f5f7fa; font-weight:500; padding:8px 6px; white-space:nowrap; }
+    table.risk td { padding:6px; border-top:1px solid #eee; white-space:nowrap; }
+    .lv { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; }
+    .lv-高 { background:#ffeded; color:#d93a49; }
+    .lv-中 { background:#fff4e0; color:#e69138; }
+    .lv-关 { background:#fffbe0; color:#b58b00; }
+    .lv-正 { background:#eefaf1; color:#3d9a53; }
+    .reasons { color:#666; white-space:normal; min-width:220px; }
+    .empty { padding:40px; text-align:center; color:#999; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+</div>
+
+<div class="x-body">
+  <div class="toolbar">
+    <form class="layui-form" lay-filter="pick">
+      <div class="layui-form-item">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:50px;">考试</label>
+          <div class="layui-input-inline" style="width:230px;">
+            <select id="kaoshi_id">
+              <option value="">请选择考试</option>
+              {% for e in page.exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:50px;">班级</label>
+          <div class="layui-input-inline" style="width:200px;">
+            <select id="banji_id">
+              <option value="">全部班级</option>
+              {% for b in page.banjis %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:50px;">等级</label>
+          <div class="layui-input-inline" style="width:120px;">
+            <select id="level">
+              <option value="">全部</option>
+              <option value="高风险">高风险</option>
+              <option value="中风险">中风险</option>
+              <option value="关注">关注</option>
+              <option value="正常">正常</option>
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">生成预警</button>
+          <a class="layui-btn layui-btn-primary" id="btnExport" href="javascript:;">导出 Excel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="num" id="cTotal">-</div><div class="lbl">参与统计学生</div></div>
+    <div class="card"><div class="num" id="cHigh" style="color:#d93a49;">-</div><div class="lbl">高风险</div></div>
+    <div class="card"><div class="num" id="cMid" style="color:#e69138;">-</div><div class="lbl">中风险</div></div>
+    <div class="card"><div class="num" id="cWatch" style="color:#b58b00;">-</div><div class="lbl">关注</div></div>
+    <div class="card"><div class="num" id="cRate" style="color:#1E9FFF;">-</div><div class="lbl">预警占比</div></div>
+  </div>
+
+  <div class="layui-row layui-col-space10">
+    <div class="layui-col-md7"><div class="chart-box"><div id="chartLevel" style="height:300px;"></div></div></div>
+    <div class="layui-col-md5"><div class="chart-box"><div id="chartPie" style="height:300px;"></div></div></div>
+  </div>
+
+  <div class="grid-wrap" id="grid"><div class="empty">请选择考试后点「生成预警」</div></div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+  var form = layui.form, layer = layui.layer;
+  var bar = echarts.init(document.getElementById('chartLevel'), 'infographic');
+  var pie = echarts.init(document.getElementById('chartPie'), 'infographic');
+  var LEVEL_COLOR = { '高风险': '#d93a49', '中风险': '#e69138', '关注': '#e0c341' };
+  var LEVELS = ['高风险', '中风险', '关注', '正常'];
+  var DATA = [];
+
+  function params() {
+    return { kaoshi_id: $('#kaoshi_id').val(), banji_id: $('#banji_id').val(), level: $('#level').val() };
+  }
+
+  function renderTable(rows) {
+    if (!rows.length) { $('#grid').html('<div class="empty">没有符合条件的学生</div>'); return; }
+    var html = '<table class="risk"><thead><tr>'
+      + '<th>班级</th><th>姓名</th><th>总分</th><th>平均分</th><th>班级均分</th><th>差值</th>'
+      + '<th>不及格</th><th>缺考</th><th>到课率</th><th>风险分</th><th>等级</th><th>预警原因</th>'
+      + '</tr></thead><tbody>';
+    $.each(rows, function (i, r) {
+      function f(v) { return (v === null || v === undefined) ? '-' : v; }
+      html += '<tr>'
+        + '<td>' + r.banji + '</td><td>' + r.xingming + '</td>'
+        + '<td>' + f(r.total) + '</td><td>' + f(r.avg) + '</td><td>' + f(r.class_avg) + '</td>'
+        + '<td>' + f(r.gap) + '</td><td>' + r.fail_count + '</td><td>' + r.absent_count + '</td>'
+        + '<td>' + (r.attendance_rate === null ? '-' : r.attendance_rate + '%') + '</td>'
+        + '<td>' + r.risk_score + '</td>'
+        + '<td><span class="lv lv-' + r.risk_level.charAt(0) + '">' + r.risk_level + '</span></td>'
+        + '<td class="reasons">' + (r.reasons.length ? r.reasons.join('；') : '-') + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    $('#grid').html(html);
+  }
+
+  function load() {
+    var p = params();
+    if (!p.kaoshi_id) { layer.msg('请选择考试'); return; }
+
+    $.post('/api/risk/list', p, function (res) {
+      if (res.val === 0) { layer.msg(res.msg); return; }
+      DATA = res.data;
+      renderTable(DATA);
+    }, 'json');
+
+    $.post('/api/risk/summary', p, function (res) {
+      if (res.val !== 1) return;
+      var s = res.data;
+      $('#cTotal').text(s.total);
+      $('#cHigh').text(s.counts['高风险']);
+      $('#cMid').text(s.counts['中风险']);
+      $('#cWatch').text(s.counts['关注']);
+      $('#cRate').text(s.at_risk_rate + '%');
+    }, 'json');
+
+    $.post('/api/risk/chart', { kaoshi_id: p.kaoshi_id, banji_id: p.banji_id }, function (res) {
+      if (res.val !== 1) return;
+      var d = res.data;
+      bar.setOption({
+        title: { text: '各班预警等级构成', textStyle: { fontSize: 13 } },
+        tooltip: { trigger: 'axis' },
+        legend: { top: 24, textStyle: { fontSize: 11 } },
+        grid: { left: 45, right: 20, top: 70, bottom: 70 },
+        xAxis: { type: 'category', data: d.categories, axisLabel: { rotate: 35, fontSize: 10 } },
+        yAxis: { type: 'value' },
+        series: d.series.map(function (s) {
+          return { name: s.name, type: 'bar', stack: 'risk', data: s.data,
+                   itemStyle: { color: LEVEL_COLOR[s.name] } };
+        })
+      }, true);
+      pie.setOption({
+        title: { text: '风险等级占比', textStyle: { fontSize: 13 } },
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 0, textStyle: { fontSize: 11 } },
+        series: [{
+          type: 'pie', radius: ['40%', '62%'], center: ['50%', '52%'],
+          data: d.pie.filter(function (x) { return x.value > 0; }),
+          label: { formatter: '{b} {c}' }
+        }]
+      }, true);
+    }, 'json');
+  }
+
+  $('#btnLoad').on('click', load);
+  $('#level').on('change', function () {
+    var lv = $(this).val();
+    if (!DATA.length) return;
+    renderTable(lv ? DATA.filter(function (r) { return r.risk_level === lv; }) : DATA);
+  });
+  $('#btnExport').on('click', function () {
+    var p = params();
+    if (!p.kaoshi_id) { layer.msg('请选择考试'); return; }
+    location.href = '/api/risk/export.xlsx?kaoshi_id=' + p.kaoshi_id
+      + '&banji_id=' + (p.banji_id || 0);
+  });
+  $(window).on('resize', function () { bar.resize(); pie.resize(); });
+});
+</script>
+</body>
+</html>

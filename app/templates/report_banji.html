@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>班级成绩报表 · {{ d.banji.full_title }} · {{ d.exam.title }}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      color: #222; margin: 0; padding: 24px 28px 60px; background: #f4f5f7;
+    }
+    .sheet { background: #fff; max-width: 1100px; margin: 0 auto; padding: 28px 32px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+    h1 { font-size: 22px; text-align: center; margin: 0 0 6px; font-weight: 600; }
+    .sub { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
+    h2 { font-size: 14px; margin: 22px 0 10px; padding-left: 8px; border-left: 3px solid #1e9fff; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #d9d9d9; padding: 5px 6px; text-align: center; }
+    th { background: #f0f4fa; font-weight: 500; }
+    tr:nth-child(even) td { background: #fbfbfb; }
+    td.name { text-align: left; }
+    .lv-高风险 { color: #d93a49; font-weight: 600; }
+    .lv-中风险 { color: #e69138; }
+    .lv-关注 { color: #b58b00; }
+    .lv-正常 { color: #3d9a53; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px 26px; font-size: 13px; color: #444; margin-bottom: 6px; }
+    .meta b { font-weight: 500; color: #111; }
+    .note { font-size: 12px; color: #888; margin-top: 8px; line-height: 1.8; }
+    .toolbar { max-width: 1100px; margin: 0 auto 12px; }
+    .toolbar button, .toolbar a {
+      padding: 7px 16px; font-size: 13px; border: 1px solid #1e9fff; background: #1e9fff;
+      color: #fff; border-radius: 3px; cursor: pointer; text-decoration: none; margin-right: 8px;
+    }
+    .toolbar a.ghost { background: #fff; color: #1e9fff; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .sheet { box-shadow: none; max-width: none; padding: 0; }
+      .toolbar { display: none; }
+      h2 { page-break-after: avoid; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <button onclick="window.print()">打印 / 另存 PDF</button>
+  <a class="ghost" href="/api/report/banji.xlsx?kaoshi_id={{ d.exam.id }}&banji_id={{ d.banji.id }}">导出 Excel</a>
+  <a class="ghost" href="/report?kaoshi_id={{ d.exam.id }}">返回报表中心</a>
+</div>
+
+<div class="sheet">
+  <h1>{{ d.banji.full_title }} · {{ d.exam.title }} 成绩报表</h1>
+  {% if d.school_title %}
+  <div class="sub">{{ d.school_title }}</div>
+  {% endif %}
+
+  <div class="meta">
+    <span>考试：<b>{{ d.exam.title }}</b></span>
+    <span>考试日期：<b>{{ d.exam_date }}</b></span>
+    <span>班级：<b>{{ d.banji.full_title }}</b></span>
+    <span>学生数：<b>{{ d.students|length }}</b>（缺考学生 <b>{{ d.absent_total }}</b> 人）</span>
+    <span>总分均分：<b>{{ d.total_avg if d.total_avg is not none else '-' }}</b></span>
+    <span>制表时间：<b>{{ d.now_text }}</b></span>
+  </div>
+
+  <h2>一、学科统计</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>学科</th><th>应考</th><th>实考</th><th>平均分</th><th>得分率(%)</th>
+      <th>标准差</th><th>最高</th><th>最低</th><th>优秀率(%)</th><th>及格率(%)</th><th>参试率(%)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for s in d.subjects %}
+    {% set t = d.subject_list[loop.index0] %}
+    <tr>
+      <td>{{ s.title }}</td>
+      {% if t %}
+      <td>{{ t.stu_cnt }}</td><td>{{ t.chengji_cnt }}</td><td>{{ t.avg }}</td><td>{{ t.defenlv }}</td>
+      <td>{{ t.biaozhuncha }}</td><td>{{ t.max }}</td><td>{{ t.min }}</td>
+      <td>{{ t.youxiulv }}</td><td>{{ t.jigelv }}</td><td>{{ t.canshilv }}</td>
+      {% else %}
+      <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>二、学生成绩明细</h2>
+  <table>
+    <thead>
+    <tr>
+      <th style="width:52px;">排名</th><th style="width:80px;">姓名</th>
+      {% for s in d.subjects %}<th>{{ s.title }}</th>{% endfor %}
+      <th style="width:70px;">总分</th><th style="width:76px;">预警</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for r in d.students %}
+    <tr>
+      <td>{{ r.rank if r.rank else '-' }}</td>
+      <td class="name">{{ r.xingming }}</td>
+      {% for c in r.cells %}
+      <td>{{ c.defen if c.defen is not none else '缺考' }}</td>
+      {% endfor %}
+      <td>{{ r.total if r.total is not none else '缺考' }}</td>
+      <td class="lv-{{ r.risk_level }}">{{ r.risk_level }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>三、预警名单</h2>
+  <table>
+    <thead><tr>
+      <th style="width:70px;">等级</th><th style="width:110px;">姓名</th>
+      <th style="width:70px;">总分</th><th>预警原因</th>
+    </tr></thead>
+    <tbody>
+    {% set ns = namespace(n=0) %}
+    {% for r in d.students %}
+    {% if r.risk_level != '正常' %}
+    {% set ns.n = ns.n + 1 %}
+    <tr>
+      <td class="lv-{{ r.risk_level }}">{{ r.risk_level }}</td>
+      <td>{{ r.xingming }}</td>
+      <td>{{ r.total if r.total is not none else '-' }}</td>
+      <td class="name">{{ r.risk_reasons or '-' }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    {% if ns.n == 0 %}
+    <tr><td colspan="4">本班暂无预警学生</td></tr>
+    {% endif %}
+    </tbody>
+  </table>
+
+  <div class="note">
+    说明：缺考按「空」记录并计入应考人数，各项比率的分母为实考人数；
+    预警等级由不及格科目数、缺考科目数、总分与班级均分差距、到课率四项规则综合判定。
+  </div>
+</div>
+</body>
+</html>

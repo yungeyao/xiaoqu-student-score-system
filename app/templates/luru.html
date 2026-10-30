@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <style>
+    .toolbar { padding: 10px 12px; background:#fff; border:1px solid #eee; }
+    .toolbar .layui-form-item { margin-bottom: 0; }
+    #scoreTable { width:100%; border-collapse:collapse; background:#fff; font-size:13px; }
+    #scoreTable th, #scoreTable td { border:1px solid #e6e6e6; padding:6px 8px; text-align:center; }
+    #scoreTable th { background:#f5f7fa; font-weight:500; }
+    #scoreTable td.name { text-align:left; }
+    #scoreTable input { width:70px; height:28px; border:1px solid #e6e6e6; padding:0 6px; text-align:center; }
+    #scoreTable input:focus { border-color:#1E9FFF; }
+    .empty { padding:40px; text-align:center; color:#999; background:#fff; border:1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+</div>
+
+<div class="x-body">
+  <div class="layui-tab layui-tab-brief" lay-filter="mode">
+    <ul class="layui-tab-title">
+      <li class="{% if mode != 'biaolu' %}layui-this{% endif %}">在线录入</li>
+      <li class="{% if mode == 'biaolu' %}layui-this{% endif %}">表格录入</li>
+    </ul>
+    <div class="layui-tab-content">
+      <!-- 在线录入 -->
+      <div class="layui-tab-item {% if mode != 'biaolu' %}layui-show{% endif %}">
+        <div class="toolbar">
+          <form class="layui-form" lay-filter="pick">
+            <div class="layui-form-item">
+              <div class="layui-inline">
+                <label class="layui-form-label" style="width:60px;">考试</label>
+                <div class="layui-input-inline" style="width:180px;">
+                  <select name="kaoshi_id" id="kaoshi_id" lay-filter="kaoshi_id">
+                    <option value="">请选择</option>
+                    {% for e in exams %}
+                    <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="layui-inline">
+                <label class="layui-form-label" style="width:60px;">班级</label>
+                <div class="layui-input-inline" style="width:150px;">
+                  <select name="banji_id" id="banji_id" lay-filter="banji_id">
+                    <option value="">请选择</option>
+                    {% for b in banjis %}
+                    <option value="{{ b.id }}">{{ b.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="layui-inline">
+                <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">载入名单</button>
+                <button type="button" class="layui-btn" id="btnSave"><i class="layui-icon">&#xe605;</i>保存成绩</button>
+                <span style="margin-left:12px;color:#888;font-size:12px;">留空表示缺考；输入 0 表示零分</span>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div id="grid" style="margin-top:10px;">
+          <div class="empty">请先选择考试和班级，然后点「载入名单」</div>
+        </div>
+      </div>
+
+      <!-- 表格录入 -->
+      <div class="layui-tab-item {% if mode == 'biaolu' %}layui-show{% endif %}">
+        <div class="toolbar">
+          <form class="layui-form" lay-filter="pick2">
+            <div class="layui-form-item">
+              <div class="layui-inline">
+                <label class="layui-form-label" style="width:60px;">考试</label>
+                <div class="layui-input-inline" style="width:180px;">
+                  <select name="kaoshi_id2" id="kaoshi_id2">
+                    <option value="">请选择</option>
+                    {% for e in exams %}
+                    <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="layui-inline">
+                <label class="layui-form-label" style="width:60px;">班级</label>
+                <div class="layui-input-inline" style="width:150px;">
+                  <select name="banji_id2" id="banji_id2">
+                    <option value="">全部班级</option>
+                    {% for b in banjis %}
+                    <option value="{{ b.id }}">{{ b.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="layui-inline">
+                <button type="button" class="layui-btn layui-btn-primary" id="btnDownload">下载采集表</button>
+                <button type="button" class="layui-btn layui-btn-warm" id="btnUpload">上传成绩表</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div style="margin-top:12px;padding:14px 18px;background:#fff;border:1px solid #eee;color:#666;font-size:13px;line-height:1.9;">
+          <b>使用说明</b><br>
+          1. 点「下载采集表」导出 Excel，表格含考号、姓名、班级和各学科列。<br>
+          2. 在 Excel 中填写分数后保存。<br>
+          3. 点「上传成绩表」选择该文件导入；系统按「考号」匹配学生。<br>
+          4. 留空的单元格视为缺考，不计入统计。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer', 'element', 'upload'], function () {
+  var form = layui.form, layer = layui.layer, upload = layui.upload;
+
+  $('#btnLoad').on('click', loadMatrix);
+  $('#banji_id').on('change', loadMatrix);
+
+  function loadMatrix() {
+    var kid = $('#kaoshi_id').val(), bid = $('#banji_id').val();
+    if (!kid || !bid) { layer.msg('请选择考试和班级'); return; }
+    $.post('/api/luru/matrix', { kaoshi_id: kid, banji_id: bid }, function (res) {
+      if (res.val != 1) { layer.msg(res.msg); return; }
+      var d = res.data;
+      if (!d.rows.length) { $('#grid').html('<div class="empty">该班级尚未生成考号，请先到「考号管理」生成</div>'); return; }
+      var html = '<table id="scoreTable"><thead><tr>'
+        + '<th style="width:50px;">序号</th><th style="width:90px;">考号</th><th style="width:90px;">姓名</th>';
+      $.each(d.subjects, function (i, s) { html += '<th>' + s.title + '</th>'; });
+      html += '</tr></thead><tbody>';
+      $.each(d.rows, function (i, r) {
+        html += '<tr><td>' + (i + 1) + '</td><td>' + (r.kaohao || '') + '</td><td class="name">' + r.student_name + '</td>';
+        $.each(d.subjects, function (j, s) {
+          var v = r.scores[s.id];
+          html += '<td><input type="number" step="0.5" data-kh="' + r.kaohao_id + '" data-sid="' + s.id
+               + '" value="' + (v === null || v === undefined ? '' : v) + '"></td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      $('#grid').html(html);
+    }, 'json');
+  }
+
+  $('#btnSave').on('click', function () {
+    var items = [];
+    $('#scoreTable tbody input').each(function () {
+      var v = $(this).val();
+      items.push({ kaohao_id: $(this).data('kh'), subject_id: $(this).data('sid'), defen: v === '' ? null : v });
+    });
+    if (!items.length) { layer.msg('请先载入名单'); return; }
+    $.post('/api/luru/save', { scores: JSON.stringify(items) }, function (res) {
+      layer.msg(res.msg);
+    }, 'json');
+  });
+
+  $('#btnDownload').on('click', function () {
+    var kid = $('#kaoshi_id2').val(), bid = $('#banji_id2').val();
+    if (!kid) { layer.msg('请选择考试'); return; }
+    location.href = '/api/luru/export?kaoshi_id=' + kid + '&banji_id=' + (bid || 0);
+  });
+
+  upload.render({
+    elem: '#btnUpload', url: '/api/luru/import', accept: 'file', exts: 'xlsx|xls',
+    before: function (obj) {
+      var kid = $('#kaoshi_id2').val();
+      if (!kid) { layer.msg('请选择考试'); return false; }
+      this.data = { kaoshi_id: kid };
+    },
+    done: function (res) {
+      layer.msg(res.msg);
+      if (res.data && res.data.err && res.data.err.length) {
+        layer.open({ type: 1, title: '导入异常明细', area: ['520px', '340px'],
+          content: '<div style="padding:12px;font-size:12px;line-height:1.8;">' + res.data.err.join('<br>') + '</div>' });
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

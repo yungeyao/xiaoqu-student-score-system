@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>试卷标签 - {{ kaoshi.title if kaoshi else '' }}</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 12px; }
+    .label {
+      display: inline-block; width: 210px; height: 92px; border: 1px dashed #666;
+      margin: 4px; padding: 8px 10px; box-sizing: border-box; page-break-inside: avoid;
+    }
+    .label .kh { font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+    .label .nm { font-size: 15px; margin-top: 4px; }
+    .label .bj { font-size: 12px; color: #666; margin-top: 2px; }
+    .label .ex { font-size: 11px; color: #999; margin-top: 2px; }
+    .noprint { margin-bottom: 12px; }
+    @media print { .noprint { display: none; } body { padding: 0; } }
+  </style>
+</head>
+<body>
+<div class="noprint">
+  <button onclick="window.print()">打印</button>
+  <span style="margin-left:12px;color:#666;font-size:13px;">共 {{ labels|length }} 个标签</span>
+</div>
+{% for l in labels %}
+<div class="label">
+  <div class="kh">{{ l.kaohao }}</div>
+  <div class="nm">{{ l.xingming }}</div>
+  <div class="bj">{{ l.banji }}</div>
+  <div class="ex">{{ kaoshi.title if kaoshi else '' }}</div>
+</div>
+{% else %}
+<div style="padding:40px;color:#999;">本场考试还没有考号</div>
+{% endfor %}
+</body>
+</html>

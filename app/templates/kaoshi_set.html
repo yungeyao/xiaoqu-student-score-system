@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <style>
+    .toolbar { padding:10px 12px; background:#fff; border:1px solid #eee; }
+    .empty { padding:40px; text-align:center; color:#999; background:#fff; border:1px solid #eee; }
+    .layui-table input { width:70px; height:26px; border:1px solid #e6e6e6; padding:0 6px; text-align:center; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+</div>
+
+<div class="x-body">
+  <div class="toolbar">
+    <div class="layui-form">
+      <div class="layui-inline">
+        <label class="layui-form-label" style="width:70px;">入学年</label>
+        <div class="layui-input-inline" style="width:130px;">
+          <select id="ruxuenian">
+            <option value="">请选择</option>
+            {% for g in grades %}<option value="{{ g }}">{{ g }} 级</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="layui-inline">
+        <button type="button" class="layui-btn layui-btn-normal" id="btnInit">初始化该年级学科</button>
+        <button type="button" class="layui-btn" id="btnSave">保存分数线</button>
+      </div>
+      <div class="layui-inline" style="color:#888;font-size:12px;">
+        满分 / 优秀 / 良好 / 及格 分数线决定统计口径
+      </div>
+    </div>
+  </div>
+
+  <div id="grid" style="margin-top:10px;">
+    <div class="empty">选择入学年后点「初始化该年级学科」</div>
+  </div>
+</div>
+
+<script>
+var KID = {{ page.kaoshi_id }};
+layui.use(['form', 'layer'], function () {
+  var form = layui.form, layer = layui.layer;
+
+  function load() {
+    $.post('/api/kaoshi/set_list', { kaoshi_id: KID }, function (res) {
+      if (!res.data.length) { $('#grid').html('<div class="empty">还没有配置学科</div>'); return; }
+      var html = '<table class="layui-table"><thead><tr><th>入学年</th><th>年级</th><th>学科</th>'
+        + '<th>满分</th><th>优秀线</th><th>良好线</th><th>及格线</th><th>操作</th></tr></thead><tbody>';
+      $.each(res.data, function (i, r) {
+        html += '<tr data-id="' + r.id + '"><td>' + r.ruxuenian + '</td><td>' + r.nianjiname + '</td><td>' + r.subject_name + '</td>'
+          + '<td><input data-f="manfen" value="' + r.manfen + '"></td>'
+          + '<td><input data-f="youxiu" value="' + r.youxiu + '"></td>'
+          + '<td><input data-f="lianghao" value="' + r.lianghao + '"></td>'
+          + '<td><input data-f="jige" value="' + r.jige + '"></td>'
+          + '<td><button class="layui-btn layui-btn-xs layui-btn-danger" onclick="delRow(' + r.id + ')">删除</button></td></tr>';
+      });
+      html += '</tbody></table>';
+      $('#grid').html(html);
+    }, 'json');
+  }
+
+  window.delRow = function (id) {
+    layer.confirm('确定删除该学科配置？', function () {
+      $.ajax({ url: '/api/kaoshi/set_delete', type: 'DELETE', data: { id: id },
+        success: function (r) { layer.msg(r.msg); load(); }, dataType: 'json' });
+    });
+  };
+
+  $('#btnInit').on('click', function () {
+    var rn = $('#ruxuenian').val();
+    if (!rn) { layer.msg('请选择入学年'); return; }
+    $.post('/api/kaoshi/set_init', { kaoshi_id: KID, ruxuenian: rn }, function (res) {
+      layer.msg(res.msg); load();
+    }, 'json');
+  });
+
+  $('#btnSave').on('click', function () {
+    var rows = $('#grid tbody tr');
+    if (!rows.length) { layer.msg('没有可保存的行'); return; }
+    var n = 0, done = 0;
+    rows.each(function () {
+      var id = $(this).data('id');
+      var data = { id: id };
+      $(this).find('input').each(function () { data[$(this).data('f')] = $(this).val(); });
+      n++;
+      $.post('/api/kaoshi/set_save', data, function (r) {
+        done++;
+        if (done === n) layer.msg('已保存 ' + done + ' 行');
+      }, 'json');
+    });
+  });
+
+  load();
+});
+</script>
+</body>
+</html>

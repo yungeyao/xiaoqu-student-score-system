@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <style>
+    .toolbar { padding:10px 12px; background:#fff; border:1px solid #eee; }
+    .toolbar .layui-form-item { margin-bottom:0; }
+    .empty { padding:40px; text-align:center; color:#999; background:#fff; border:1px solid #eee; }
+    .banji-pick { background:#fff;border:1px solid #eee;padding:12px 14px;margin-top:10px; }
+    .banji-pick label { display:inline-block; margin:4px 10px 4px 0; font-size:13px; font-weight:400; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+</div>
+
+<div class="x-body">
+  <div class="toolbar">
+    <form class="layui-form" lay-filter="pick">
+      <div class="layui-form-item">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:60px;">考试</label>
+          <div class="layui-input-inline" style="width:200px;">
+            <select name="kaoshi_id" id="kaoshi_id">
+              <option value="">请选择考试</option>
+              {% for e in exams %}
+              <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button type="button" class="layui-btn layui-btn-normal" id="btnGen">为选中班级生成考号</button>
+          <button type="button" class="layui-btn layui-btn-danger" id="btnClear">清空本场考号</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnReload">刷新列表</button>
+          <a class="layui-btn layui-btn-primary" target="_blank" id="btnPrint">打印试卷标签</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="banji-pick" id="banjiPick">
+    <div style="margin-bottom:8px;font-size:13px;color:#666;">参加考试的班级：</div>
+    <div id="banjiList"></div>
+  </div>
+
+  <div id="grid" style="margin-top:10px;">
+    <div class="empty">请选择考试</div>
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+  var form = layui.form, layer = layui.layer;
+
+  function loadBanjis() {
+    $.post('/api/banji/list', { limit: 500, page: 1 }, function (res) {
+      var html = '';
+      $.each(res.data, function (i, b) {
+        html += '<label><input type="checkbox" class="bj" value="' + b.id + '" lay-skin="primary" title="' + b.school_id_name + ' ' + b.ruxuenian + '级' + b.paixu + '班"></label>';
+      });
+      $('#banjiList').html(html);
+      form.render('checkbox');
+    }, 'json');
+  }
+
+  function loadTable() {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { $('#grid').html('<div class="empty">请选择考试</div>'); return; }
+    $.post('/api/kaohao/list', { kaoshi_id: kid }, function (res) {
+      if (!res.data.length) { $('#grid').html('<div class="empty">本场考试还没有考号</div>'); return; }
+      var html = '<table class="layui-table"><thead><tr><th>考号</th><th>姓名</th><th>班级</th><th>年级</th><th>入学年</th><th>班内序号</th></tr></thead><tbody>';
+      $.each(res.data, function (i, r) {
+        html += '<tr><td><b>' + r.kaohao + '</b></td><td>' + r.student_name + '</td><td>' + r.banji_name
+             + '</td><td>' + r.nianji + '</td><td>' + r.ruxuenian + '</td><td>' + r.paixu + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      $('#grid').html('<div style="background:#fff;border:1px solid #eee;padding:10px 14px;font-size:13px;">共 ' + res.count + ' 个考号</div>' + html);
+    }, 'json');
+  }
+
+  $('#btnGen').on('click', function () {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { layer.msg('请选择考试'); return; }
+    var ids = [];
+    $('.bj:checked').each(function () { ids.push($(this).val()); });
+    if (!ids.length) { layer.msg('请勾选班级'); return; }
+    $.post('/api/kaohao/generate', { kaoshi_id: kid, banji_ids: ids.join(',') }, function (res) {
+      layer.msg(res.msg); loadTable();
+    }, 'json');
+  });
+
+  $('#btnClear').on('click', function () {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { layer.msg('请选择考试'); return; }
+    layer.confirm('将删除本场考试的全部考号及其成绩，确定继续？', function () {
+      $.post('/api/kaohao/clear', { kaoshi_id: kid }, function (res) { layer.msg(res.msg); loadTable(); }, 'json');
+    });
+  });
+
+  $('#btnReload').on('click', loadTable);
+  $('#kaoshi_id').on('change', loadTable);
+  $('#btnPrint').on('click', function () {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { layer.msg('请选择考试'); return false; }
+    this.href = '/kaohao/print?kaoshi_id=' + kid;
+  });
+
+  loadBanjis();
+  {% if kaoshi_id %}loadTable();{% endif %}
+});
+</script>
+</body>
+</html>

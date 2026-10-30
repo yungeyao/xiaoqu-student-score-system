@@ -1,0 +1,49 @@
+{% extends "base_create.html" %}
+{% block form %}
+<form class="layui-form" id="myform" lay-filter="myform">
+  <input type="hidden" name="id" value="{{ page.obj.id or '' }}">
+  {% for f in page.fields %}
+  <div class="layui-form-item">
+    <label class="layui-form-label" style="width:110px;">{{ f.label }}</label>
+    <div class="layui-input-block" style="margin-left:140px;">
+      {% if f.type == 'select' %}
+      <select name="{{ f.name }}" {% if f.required %}lay-verify="required"{% endif %}>
+        <option value=""></option>
+        {% for o in f.options %}
+        <option value="{{ o.value }}" {% if page.obj[f.name]|string == o.value|string %}selected{% endif %}>{{ o.label }}</option>
+        {% endfor %}
+      </select>
+      {% elif f.type == 'textarea' %}
+      <textarea name="{{ f.name }}" class="layui-textarea" placeholder="{{ f.placeholder or '' }}">{{ page.obj[f.name] or '' }}</textarea>
+      {% elif f.type == 'date' %}
+      <input type="text" name="{{ f.name }}" id="{{ f.name }}" class="layui-input" autocomplete="off"
+             placeholder="yyyy-MM-dd" value="{{ page.obj[f.name] or '' }}">
+      {% elif f.type == 'switch' %}
+      <input type="checkbox" name="{{ f.name }}" value="1" lay-skin="switch" lay-text="是|否"
+             {% if page.obj[f.name] %}checked{% endif %}>
+      {% else %}
+      <input type="{{ f.type or 'text' }}" name="{{ f.name }}" class="layui-input"
+             {% if f.required %}lay-verify="required"{% endif %}
+             placeholder="{{ f.placeholder or '' }}" value="{{ page.obj[f.name] if page.obj[f.name] is not none else '' }}">
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  <div class="layui-form-item" style="text-align:center;">
+    <button class="layui-btn" lay-submit lay-filter="mysubmit">保 存</button>
+    <button type="button" class="layui-btn layui-btn-primary" onclick="var i=parent.layer.getFrameIndex(window.name);parent.layer.close(i);">关 闭</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block myjs %}
+<script>
+layui.use(['form', 'laydate', 'jquery'], function () {
+  var form = layui.form, laydate = layui.laydate, $ = layui.jquery;
+  {% for f in page.fields %}{% if f.type == 'date' %}
+  laydate.render({ elem: '#{{ f.name }}', type: 'date' });
+  {% endif %}{% endfor %}
+  form.render();
+});
+</script>
+{% endblock %}

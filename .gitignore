@@ -1,0 +1,27 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# ---- 运行时数据（SQLite 数据库，用 seed 脚本重建）----
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.sqlite3
+data/.secret_key
+
+# ---- 临时导出/导入文件 ----
+data/_*.xlsx
+*.tmp
+*.log
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

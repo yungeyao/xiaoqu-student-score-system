@@ -1,0 +1,103 @@
+{% extends "base_list.html" %}
+{% block nav %}
+  <span class="layui-breadcrumb">
+    <a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a>
+  </span>
+{% endblock %}
+
+{% block search %}
+<div class="layui-form-item">
+  {% for f in page.search_fields or [] %}
+  <div class="layui-inline">
+    <label class="layui-form-label" style="width:80px;">{{ f.label }}</label>
+    <div class="layui-input-inline" style="width:160px;">
+      {% if f.type == 'select' %}
+      <select name="{{ f.name }}">
+        <option value=""></option>
+        {% for o in f.options %}
+        <option value="{{ o.value }}">{{ o.label }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <input type="text" name="{{ f.name }}" placeholder="{{ f.label }}" class="layui-input">
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  <div class="layui-inline">
+    <button class="layui-btn" lay-submit lay-filter="searchSubmit"><i class="layui-icon">&#xe615;</i>搜索</button>
+    <button class="layui-btn layui-btn-primary" lay-submit lay-filter="resetSubmit">重置</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block table %}
+<table class="layui-hide" id="tabledemo" lay-filter="mytable"></table>
+<script type="text/html" id="toolbarDemo">
+  <div class="layui-btn-container">
+    {% for b in page.toolbar or [] %}
+    <button class="layui-btn layui-btn-sm" lay-event="{{ b.event }}">
+      <i class="layui-icon">{% if b.event=='add' %}&#xe654;{% elif b.event=='delete' %}&#xe640;{% else %}&#xe716;{% endif %}</i>{{ b.title }}
+    </button>
+    {% endfor %}
+  </div>
+</script>
+<script type="text/html" id="barDemo">
+  {% for b in page.rowbar or [] %}
+  <a class="layui-btn layui-btn-xs" lay-event="{{ b.event }}">{{ b.title }}</a>
+  {% endfor %}
+  {% if page.can_delete %}
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+  {% endif %}
+</script>
+{% endblock %}
+
+{% block myjs %}
+<script type="text/javascript">
+layui.use(['table', 'form', 'mytable', 'jquery'], function () {
+  var table = layui.table, form = layui.form, mytable = layui.mytable, $ = layui.jquery;
+
+  var cols = {{ page.cols|tojson }};
+  cols.push({ fixed: 'right', width: {{ page.rowbar_width or 180 }}, align: 'center', toolbar: '#barDemo', title: '操作' });
+  options.cols = [cols];
+  options.where = form.val("search");
+  userTable = table.render(options);
+
+  table.on('toolbar(mytable)', function (obj) {
+    switch (obj.event) {
+      case 'add':
+        xadmin.open('新增', '{{ page.create_url }}', '760', '520');
+        break;
+      case 'delete':
+        mytable.delAll(obj, '{{ page.delete_url }}', 'mytable');
+        break;
+      {% for b in page.toolbar or [] %}
+      {% if b.event not in ['add','delete'] %}
+      case '{{ b.event }}':
+        {{ b.js|safe }}
+        break;
+      {% endif %}
+      {% endfor %}
+    }
+  });
+
+  table.on('tool(mytable)', function (obj) {
+    switch (obj.event) {
+      case 'edit':
+        xadmin.open('编辑', '{{ page.create_url }}?id=' + obj.data.id, '760', '520');
+        break;
+      case 'del':
+        mytable.del(obj, '{{ page.delete_url }}');
+        break;
+      {% for b in page.rowbar or [] %}
+      {% if b.event not in ['edit'] %}
+      case '{{ b.event }}':
+        {{ b.js|safe }}
+        break;
+      {% endif %}
+      {% endfor %}
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <style>
+    .toolbar { padding:16px 18px; background:#fff; border:1px solid #eee; }
+    .toolbar .layui-form-item { margin-bottom:0; }
+    .cards { display:flex; gap:10px; margin-top:10px; }
+    .card { flex:1; background:#fff; border:1px solid #eee; padding:16px 18px; }
+    .card h4 { font-size:13px; color:#333; font-weight:500; margin-bottom:8px; }
+    .card p { font-size:12px; color:#888; line-height:1.9; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+</div>
+
+<div class="x-body">
+  <div class="toolbar">
+    <form class="layui-form" lay-filter="pick">
+      <div class="layui-form-item">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:50px;">考试</label>
+          <div class="layui-input-inline" style="width:240px;">
+            <select id="kaoshi_id">
+              <option value="">请选择考试</option>
+              {% for e in page.exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:50px;">班级</label>
+          <div class="layui-input-inline" style="width:210px;">
+            <select id="banji_id">
+              <option value="">请选择班级</option>
+              {% for b in page.banjis %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button type="button" class="layui-btn layui-btn-normal" id="btnPrint">生成班级报表</button>
+          <button type="button" class="layui-btn" id="btnXlsx">导出本班 Excel</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnAll">批量导出全部班级</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h4>班级成绩报表</h4>
+      <p>按考试 + 班级生成可直接打印/另存 PDF 的报表：学科统计、学生成绩明细、班内排名与预警名单。</p>
+    </div>
+    <div class="card">
+      <h4>单班 Excel</h4>
+      <p>三张表：成绩明细、学科统计、预警名单，方便教务汇总与上报。</p>
+    </div>
+    <div class="card">
+      <h4>批量导出</h4>
+      <p>一场考试下所有可见班级一次导出：汇总表 + 每班一张工作表，无需逐个点。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+  var form = layui.form, layer = layui.layer;
+  form.render();
+  var preselect = {{ page.preselect or 0 }};
+  if (preselect) {
+    $('#kaoshi_id').val(String(preselect));
+    form.render('select');
+  }
+
+  function check(needBanji) {
+    var kid = $('#kaoshi_id').val();
+    var bid = $('#banji_id').val();
+    if (!kid) { layer.msg('请选择考试'); return null; }
+    if (needBanji && !bid) { layer.msg('请选择班级'); return null; }
+    return { kaoshi_id: kid, banji_id: bid };
+  }
+
+  $('#btnPrint').on('click', function () {
+    var p = check(true);
+    if (!p) return;
+    window.open('/report/banji?kaoshi_id=' + p.kaoshi_id + '&banji_id=' + p.banji_id);
+  });
+  $('#btnXlsx').on('click', function () {
+    var p = check(true);
+    if (!p) return;
+    location.href = '/api/report/banji.xlsx?kaoshi_id=' + p.kaoshi_id + '&banji_id=' + p.banji_id;
+  });
+  $('#btnAll').on('click', function () {
+    var p = check(false);
+    if (!p) return;
+    layer.msg('正在生成，请稍候…', { time: 1200 });
+    location.href = '/api/report/all.xlsx?kaoshi_id=' + p.kaoshi_id;
+  });
+});
+</script>
+</body>
+</html>

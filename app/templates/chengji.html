@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page.webtitle }}</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <script src="{{ XADMIN }}/js/echarts/echarts.js"></script>
+  <style>
+    .toolbar { padding:10px 12px; background:#fff; border:1px solid #eee; }
+    .toolbar .layui-form-item { margin-bottom:0; }
+    .empty { padding:40px; text-align:center; color:#999; background:#fff; border:1px solid #eee; }
+    .stat-strip { background:#fff;border:1px solid #eee;padding:12px 16px;margin-top:10px;font-size:13px;color:#555; }
+  </style>
+</head>
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+</div>
+
+<div class="x-body">
+  <div class="toolbar">
+    <form class="layui-form" lay-filter="pick">
+      <div class="layui-form-item">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:60px;">考试</label>
+          <div class="layui-input-inline" style="width:190px;">
+            <select name="kaoshi_id" id="kaoshi_id">
+              <option value="">请选择</option>
+              {% for e in exams %}
+              <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:60px;">班级</label>
+          <div class="layui-input-inline" style="width:150px;">
+            <select name="banji_id" id="banji_id">
+              <option value="">全部</option>
+              {% for b in banjis %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width:60px;">姓名</label>
+          <div class="layui-input-inline" style="width:120px;">
+            <input type="text" name="searchval" id="searchval" class="layui-input">
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">查询</button>
+          <button type="button" class="layui-btn" id="btnExport">导出 Excel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div id="grid" style="margin-top:10px;">
+    <div class="empty">请选择考试后点「查询」</div>
+  </div>
+
+  <div class="stat-strip" id="statStrip" style="display:none;"></div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+  var form = layui.form, layer = layui.layer;
+
+  function load() {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { layer.msg('请选择考试'); return; }
+    $.post('/api/chengji/subjects', { kaoshi_id: kid }, function (res) {
+      if (res.val != 1) { layer.msg(res.msg); return; }
+      var subs = res.data;
+      $.post('/api/chengji/list', {
+        kaoshi_id: kid, banji_id: $('#banji_id').val(),
+        searchval: $('#searchval').val(), page: 1, limit: 500
+      }, function (r2) {
+        if (!r2.data.length) { $('#grid').html('<div class="empty">暂无成绩数据</div>'); return; }
+        var html = '<table class="layui-table"><thead><tr><th>考号</th><th>姓名</th><th>班级</th>';
+        $.each(subs, function (i, s) { html += '<th>' + s.title + '</th>'; });
+        html += '<th>总分</th></tr></thead><tbody>';
+        $.each(r2.data, function (i, row) {
+          html += '<tr><td>' + (row.kaohao || '') + '</td><td>' + row.student_name + '</td><td>' + row.banji_name + '</td>';
+          $.each(subs, function (j, s) {
+            var v = row['s' + s.id];
+            html += '<td>' + (v === null || v === undefined ? '<span style="color:#ccc;">缺考</span>' : v) + '</td>';
+          });
+          html += '<td><b>' + (row.total === null || row.total === undefined ? '-' : row.total) + '</b></td></tr>';
+        });
+        html += '</tbody></table>';
+        $('#grid').html(html);
+        $('#statStrip').show().html('共 ' + r2.count + ' 名学生');
+      }, 'json');
+    }, 'json');
+  }
+
+  $('#btnLoad').on('click', load);
+  $('#btnExport').on('click', function () {
+    var kid = $('#kaoshi_id').val();
+    if (!kid) { layer.msg('请选择考试'); return; }
+    location.href = '/api/luru/export?kaoshi_id=' + kid + '&banji_id=' + ($('#banji_id').val() || 0);
+  });
+  {% if kaoshi_id %}$('#btnLoad').trigger('click');{% endif %}
+});
+</script>
+</body>
+</html>

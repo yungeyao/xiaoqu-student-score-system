@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>我的成绩</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <script src="{{ XADMIN }}/js/echarts/echarts.js"></script>
+  <style>
+    body { background:#f2f3f5; }
+    .card { background:#fff; border:1px solid #eee; border-radius:4px; padding:14px 18px; margin-bottom:12px; }
+    .info-row { font-size:13px; color:#555; line-height:2; }
+    .info-row b { color:#333; font-weight:500; }
+    .layui-table td, .layui-table th { font-size:13px; text-align:center; }
+  </style>
+</head>
+<body>
+<div class="x-body" style="max-width:1100px;margin:0 auto;padding:15px;">
+  <div class="card">
+    <div class="info-row">
+      <b>{{ student.xingming }}</b>　|　班级：{{ banji_name }}　|　{{ '男' if student.sex == 1 else '女' }}
+      <span style="float:right;"><a href="/logout" style="color:#1E9FFF;">退出登录</a></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:10px;">历次成绩</div>
+    <div id="grid"><span style="color:#999;">加载中…</span></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:10px;">
+      学科成绩趋势
+      <select id="subjectPick" style="float:right;height:28px;border:1px solid #e6e6e6;">
+        {% for sid, title in subjects.items() %}<option value="{{ sid }}">{{ title }}</option>{% endfor %}
+      </select>
+    </div>
+    <div id="chartLine" style="height:300px;"></div>
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+  var layer = layui.layer;
+  var chart = echarts.init(document.getElementById('chartLine'), 'infographic');
+
+  function loadTable() {
+    $.post('/api/student/scores', {}, function (res) {
+      if (!res.data || !res.data.length) { $('#grid').html('<span style="color:#999;">暂无成绩记录</span>'); return; }
+      var subs = [];
+      $('#subjectPick option').each(function () { subs.push({ id: $(this).val(), title: $(this).text() }); });
+      var html = '<table class="layui-table"><thead><tr><th>考试</th>';
+      $.each(subs, function (i, s) { html += '<th>' + s.title + '</th>'; });
+      html += '<th>总分</th></tr></thead><tbody>';
+      $.each(res.data, function (i, r) {
+        html += '<tr><td>' + r.exam + '</td>';
+        $.each(subs, function (j, s) {
+          var v = r['s' + s.id];
+          html += '<td>' + (v === null || v === undefined ? '-' : v) + '</td>';
+        });
+        html += '<td><b>' + (r.total === null || r.total === undefined ? '-' : r.total) + '</b></td></tr>';
+      });
+      html += '</tbody></table>';
+      $('#grid').html(html);
+    }, 'json');
+  }
+
+  function loadChart() {
+    $.post('/api/student/chart', { subject_id: $('#subjectPick').val() }, function (res) {
+      if (res.val != 1) return;
+      chart.setOption({
+        tooltip: { trigger: 'axis' },
+        grid: { left: 50, right: 20, top: 30, bottom: 50 },
+        xAxis: { type: 'category', data: res.data.categories, axisLabel: { rotate: 20, fontSize: 11 } },
+        yAxis: { type: 'value' },
+        series: [{
+          name: '得分', type: 'line', smooth: true,
+          data: res.data.series[0] ? res.data.series[0].data : [],
+          itemStyle: { color: '#1E9FFF' }, areaStyle: { opacity: 0.12 }
+        }]
+      });
+    }, 'json');
+  }
+
+  $('#subjectPick').on('change', loadChart);
+  loadTable();
+  loadChart();
+});
+</script>
+</body>
+</html>

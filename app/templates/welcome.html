@@ -1,0 +1,64 @@
+<!doctype html>
+<html class="x-admin-sm">
+<head>
+  <meta charset="UTF-8">
+  <title>我的桌面</title>
+  <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
+  <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
+  <script src="{{ XADMIN }}/js/jquery.min.js"></script>
+  <script src="{{ XADMIN }}/lib/layui/layui.js"></script>
+  <script src="{{ XADMIN }}/js/xadmin.js"></script>
+  <style>
+    .stat-card { background:#fff; border-radius:4px; padding:18px 20px; border:1px solid #eee; }
+    .stat-num { font-size:28px; font-weight:500; color:#1E9FFF; }
+    .stat-label { color:#888; font-size:13px; margin-top:4px; }
+    .panel { background:#fff; border:1px solid #eee; border-radius:4px; padding:16px 20px; margin-top:15px; }
+    .panel h3 { font-size:14px; font-weight:500; margin-bottom:12px; color:#333; }
+  </style>
+</head>
+<body>
+<div class="x-body" style="padding:15px;">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.kaoshi }}</div><div class="stat-label">考试场次</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.student }}</div><div class="stat-label">在校学生</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.banji }}</div><div class="stat-label">班级</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.teacher }}</div><div class="stat-label">教师</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.course }}</div><div class="stat-label">课程</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.attendance }}</div><div class="stat-label">考勤记录</div></div></div>
+  </div>
+
+  <div class="panel">
+    <h3>最近考试</h3>
+    <table class="layui-table">
+      <thead><tr><th>考试名称</th><th>学期</th><th>开始日期</th><th>结束日期</th><th>状态</th></tr></thead>
+      <tbody>
+      {% for k in recent %}
+        <tr>
+          <td>{{ k.title }}</td>
+          <td>{{ k.xueqi or '-' }}</td>
+          <td>{{ k.bfdate }}</td>
+          <td>{{ k.enddate }}</td>
+          <td>{{ '允许录入' if k.luru else '已结束' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#999;">暂无考试</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>使用流程</h3>
+    <ol style="line-height:2;color:#555;font-size:13px;padding-left:20px;">
+      <li>基础数据：录入学校、学期、班级、学科、学生、教师</li>
+      <li>教学管理：开设课程 → 学生选课 → 按课程与日期录入考勤</li>
+      <li>考试管理：新建考试 → 设置参加考试的年级与学科分数线 → 生成考号</li>
+      <li>成绩管理：在线录入或下载采集表批量导入，支持多条件查询</li>
+      <li>统计分析：执行统计后查看班级 / 年级 / 全校三个层级的数据与图表</li>
+      <li>学业预警：按不及格科目、缺考、班级均分差距与到课率识别风险学生</li>
+      <li>报表中心：一键生成班级成绩报表（可打印）与 Excel 导出</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>
