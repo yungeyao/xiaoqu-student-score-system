@@ -1,4 +1,4 @@
-"""学业预警：页面、名单接口、图表数据与导出。"""
+"""Academic risk: 页面, 名单接口, 图表数据与导出。"""
 from __future__ import annotations
 
 import io
@@ -47,7 +47,7 @@ def _scope(request, db):
 
 
 def _banji_ids(scope) -> list[int] | None:
-    """预警计算用的班级范围：管理员为 None（不限）。"""
+    """预警计算用的Class范围: 管理员为 None (不限)。"""
     return None if scope["all"] else (scope["banji_ids"] or [0])
 
 
@@ -63,7 +63,7 @@ def risk_page(request: Request, db: Session = Depends(get_db)):
 
     scope = _scope(request, db)
     page = {
-        "webtitle": "学业预警",
+        "webtitle": "Academic risk",
         "exams": _exam_options(db),
         "banjis": _banji_options(db, scope),
     }
@@ -77,13 +77,13 @@ def _rows(request, db, form):
     kid = int_or(form, "kaoshi_id", 0)
     banji_id = int_or(form, "banji_id", 0)
     if not kid:
-        return None, "请先选择考试"
+        return None, "Select an exam first"
 
     scope = _scope(request, db)
     ids = _banji_ids(scope)
     if banji_id:
         if ids is not None and banji_id not in ids:
-            return None, "无权查看该班级"
+            return None, "You cannot view this class"
         ids = [banji_id]
 
     rows = risk_service.evaluate(db, kid, ids)
@@ -116,7 +116,7 @@ async def risk_summary(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/risk/chart")
 async def risk_chart(request: Request, db: Session = Depends(get_db)):
-    """按班级分组的风险等级人数，供柱状图使用。"""
+    """按Class分组的风险Level students数, 供柱状图使用。"""
     form = await _form(request)
     rows, err = _rows(request, db, form)
     if err:
@@ -127,11 +127,11 @@ async def risk_chart(request: Request, db: Session = Depends(get_db)):
     for r in rows:
         grouped[r["banji_id"]][r["risk_level"]] += 1
 
-    order = sorted(grouped, key=lambda bid: (-grouped[bid]["高风险"], -grouped[bid]["中风险"]))
+    order = sorted(grouped, key=lambda bid: (-grouped[bid]["High"], -grouped[bid]["Medium"]))
     categories = [bj.get(bid, "") for bid in order]
     series = [
         {"name": lv, "data": [grouped[bid][lv] for bid in order]}
-        for lv in ("高风险", "中风险", "关注")
+        for lv in ("High", "Medium", "Watch")
     ]
     # 风险等级构成（饼图用）
     s = risk_service.summary(rows)
@@ -149,7 +149,7 @@ def risk_export(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
     if redirect:
         return redirect
     if not kaoshi_id:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
 
     form = {"kaoshi_id": str(kaoshi_id), "banji_id": str(banji_id or "")}
     rows, err = _rows(request, db, form)
@@ -159,34 +159,34 @@ def risk_export(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "预警名单"
-    head = ["班级", "姓名", "总分", "平均分", "班级均分", "差值", "不及格科目",
-            "缺考科目", "到课率(%)", "风险分", "等级", "预警原因"]
+    ws.title = "At-risk students"
+    head = ["Class", "Name", "Total", "Average", "Class avg", "Gap", "Failed subjects",
+            "Absent subjects", "Attendance (%)", "Risk score", "Level", "Reason"]
     ws.append(head)
     for c in ws[1]:
         c.font = Font(bold=True, color="FFFFFF")
         c.fill = PatternFill("solid", fgColor="1E9FFF")
         c.alignment = Alignment(horizontal="center")
 
-    fills = {"高风险": "FFE7E7", "中风险": "FFF4E0", "关注": "FFFBE0"}
+    fills = {"High": "FFE7E7", "Medium": "FFF4E0", "Watch": "FFFBE0"}
     for r in rows:
         ws.append([
             r["banji"], r["xingming"], r["total"], r["avg"], r["class_avg"], r["gap"],
             r["fail_count"], r["absent_count"], r["attendance_rate"],
-            r["risk_score"], r["risk_level"], "；".join(r["reasons"]),
+            r["risk_score"], r["risk_level"], "; ".join(r["reasons"]),
         ])
         color = fills.get(r["risk_level"])
         if color:
             for c in ws[ws.max_row]:
                 c.fill = PatternFill("solid", fgColor=color)
 
-    ws2 = wb.create_sheet("汇总")
-    ws2.append(["指标", "数值"])
-    ws2.append(["学生总数", summary["total"]])
+    ws2 = wb.create_sheet("Summary")
+    ws2.append(["Metric", "Value"])
+    ws2.append(["Students analysed", summary["total"]])
     for lv in risk_service.LEVELS:
         ws2.append([lv, summary["counts"][lv]])
-    ws2.append(["预警学生数", summary["at_risk"]])
-    ws2.append(["预警占比(%)", summary["at_risk_rate"]])
+    ws2.append(["At-risk students", summary["at_risk"]])
+    ws2.append(["At-risk share (%)", summary["at_risk_rate"]])
 
     for sheet in (ws, ws2):
         for column in sheet.columns:

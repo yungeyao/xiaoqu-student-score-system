@@ -53,7 +53,7 @@ app.include_router(report.router)
 @app.exception_handler(404)
 async def not_found(request: Request, exc):
     if request.url.path.startswith("/api/"):
-        return JSONResponse({"val": 0, "msg": "接口不存在"}, status_code=404)
+        return JSONResponse({"val": 0, "msg": "API not found"}, status_code=404)
     return RedirectResponse("/")
 
 

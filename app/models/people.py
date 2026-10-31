@@ -16,7 +16,7 @@ class Teacher(TimestampMixin, StatusMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     xingming: Mapped[str] = mapped_column(String(8), nullable=False, comment="姓名")
-    sex: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=女，1=男，2=未知")
+    sex: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=女, 1=男, 2=未知")
     shengri: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="生日")
     worktime: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="工作时间")
     zhiwu_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="职务")
@@ -39,7 +39,7 @@ class Admin(TimestampMixin, StatusMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     xingming: Mapped[str] = mapped_column(String(15), nullable=False, comment="姓名")
-    sex: Mapped[int] = mapped_column(Integer, default=2, nullable=False, comment="0=女，1=男，2=未知")
+    sex: Mapped[int] = mapped_column(Integer, default=2, nullable=False, comment="0=女, 1=男, 2=未知")
     username: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, comment="登录帐号")
     password: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, comment="登录密码")
     teacher_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="教师编号")
@@ -68,10 +68,10 @@ class Student(TimestampMixin, StatusMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     xingming: Mapped[str] = mapped_column(String(5), nullable=False, comment="姓名")
-    sex: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=女，1=男，2=未知")
+    sex: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=女, 1=男, 2=未知")
     shengri: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="生日")
     shenfenzhenghao: Mapped[Optional[str]] = mapped_column(
-        String(18), nullable=True, comment="身份证号（登录帐号）"
+        String(18), nullable=True, comment="身份证号 (登录帐号)"
     )
     password: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, comment="登录密码")
     banji_id: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="班级")
@@ -123,7 +123,7 @@ class AuthGroupAccess(Base):
 
 
 class BanZhuRen(TimestampMixin, Base):
-    """班主任任职记录。bfdate 起任职，取最新一条判断现任。"""
+    """班主任任职记录。bfdate 起任职, 取最新一条判断现任。"""
 
     __tablename__ = "ban_zhu_ren"
 
@@ -135,7 +135,7 @@ class BanZhuRen(TimestampMixin, Base):
 
 
 class FenGong(TimestampMixin, Base):
-    """任课分工：某学期 某教师 教 某班 某学科。"""
+    """任课分工: 某学期 某教师 教 某班 某学科。"""
 
     __tablename__ = "fen_gong"
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""页面渲染冒烟：确认模板无异常、无未渲染占位。"""
+"""页面渲染冒烟: 确认模板无异常, 无未渲染占位。"""
 import http.cookiejar
 import re
 import urllib.parse
@@ -31,15 +31,15 @@ for p in PAGES:
     html = op.open(BASE + p).read().decode("utf-8", "replace")
     issues = []
     if "Traceback" in html:
-        issues.append("服务端异常")
+        issues.append("server error")
     # layui 表格有自己的客户端模板语法 {{ d.field }}，需与 Jinja 残留区分开
     jinja = [m.group(0) for m in re.finditer(r"\{%|\{\{(?!\s*d\.)", html)]
     if jinja:
-        issues.append(f"模板未渲染({len(jinja)} 处)")
+        issues.append(f"template not rendered ({len(jinja)})")
     if len(html) < 400:
-        issues.append(f"内容过短({len(html)})")
+        issues.append(f"too short ({len(html)})")
     if issues:
         bad += 1
-    print(f"{'FAIL' if issues else 'OK  '} {p:<22} {len(html):>6} 字节  {'; '.join(issues)}")
+    print(f"{'FAIL' if issues else 'OK  '} {p:<22} {len(html):>6} bytes  {'; '.join(issues)}")
 
-print(f"\n共 {len(PAGES)} 个页面，异常 {bad} 个")
+print(f"\n{len(PAGES)} pages, {bad} problems")

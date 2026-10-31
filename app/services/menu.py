@@ -1,4 +1,4 @@
-"""侧边栏菜单。读取 auth_rule 中 ismenu=1 的规则，按当前用户权限过滤。"""
+"""侧边栏菜单。读取 auth_rule 中 ismenu=1 的规则, 按当前用户权限过滤。"""
 from __future__ import annotations
 
 from html import unescape
@@ -13,7 +13,7 @@ from .permission import user_rule_ids
 
 
 def build_menu(db: Session, user) -> list[dict]:
-    """返回两层菜单树。超级管理员看到全部。"""
+    """返回两层菜单树。超级管理员看到All。"""
     rules = db.scalars(
         select(AuthRule)
         .where(AuthRule.ismenu == 1, AuthRule.status == 1, AuthRule.delete_time.is_(None))

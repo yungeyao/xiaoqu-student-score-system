@@ -19,12 +19,12 @@ class Kaoshi(TimestampMixin, StatusMixin, Base):
     fanwei_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="允许查看范围ID")
     bfdate: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="开始日期")
     enddate: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="结束日期")
-    luru: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=不允许录入，1=允许")
+    luru: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=不允许录入, 1=允许")
     beizhu: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
 
 
 class KaoshiSet(TimestampMixin, StatusMixin, Base):
-    """某场考试里，某年级某学科的满分与分数线。"""
+    """某场考试里, 某年级某学科的满分与分数线。"""
 
     __tablename__ = "kaoshi_set"
 

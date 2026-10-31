@@ -1,4 +1,4 @@
-"""考试管理：考试 CRUD、学科分数线设置、考号生成。"""
+"""Exams: Exam CRUD, Subject分数线设置, Exam no.生成。"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
@@ -44,35 +44,35 @@ def kaoshi_page(request: Request, db: Session = Depends(get_db)):
     from ..main import templates
 
     page = {
-        "webtitle": "考试管理",
+        "webtitle": "Exams",
         "dataurl": "/api/kaoshi/list",
         "create_url": "/kaoshi/create",
         "delete_url": "/api/kaoshi/delete",
         "status_url": "/api/kaoshi/status",
         "cols": [
             {"field": "id", "title": "ID", "width": 60},
-            {"field": "title", "title": "考试名称", "width": 180},
-            {"field": "xueqi_name", "title": "学期", "width": 120},
-            {"field": "category_name", "title": "类别", "width": 100},
-            {"field": "bfdate", "title": "开始日期", "width": 110},
-            {"field": "enddate", "title": "结束日期", "width": 110},
-            {"field": "luru", "title": "允许录入", "width": 100, "templet": "#luruTpl"},
-            {"field": "status", "title": "状态", "width": 80, "templet": "#statusTpl"},
+            {"field": "title", "title": "ExamName", "width": 180},
+            {"field": "xueqi_name", "title": "Semester", "width": 120},
+            {"field": "category_name", "title": "Category", "width": 100},
+            {"field": "bfdate", "title": "Start date", "width": 110},
+            {"field": "enddate", "title": "End date", "width": 110},
+            {"field": "luru", "title": "Open for entry", "width": 100, "templet": "#luruTpl"},
+            {"field": "status", "title": "Status", "width": 80, "templet": "#statusTpl"},
         ],
-        "toolbar": [{"event": "add", "title": "新增考试"}, {"event": "delete", "title": "批量删除"}],
+        "toolbar": [{"event": "add", "title": "New exam"}, {"event": "delete", "title": "Bulk delete"}],
         "rowbar": [
-            {"event": "edit", "title": "编辑"},
-            {"event": "set", "title": "学科设置",
-             "js": "xadmin.add_tab('学科设置', '/kaoshi/set?id=' + obj.data.id);"},
-            {"event": "kaohao", "title": "考号",
-             "js": "xadmin.add_tab('考号管理', '/kaohao?kaoshi_id=' + obj.data.id);"},
-            {"event": "luru", "title": "录入成绩",
-             "js": "xadmin.add_tab('成绩录入', '/luru?kaoshi_id=' + obj.data.id);"},
-            {"event": "tongji", "title": "统计分析",
-             "js": "xadmin.add_tab('统计分析', '/chengji?kaoshi_id=' + obj.data.id);"},
+            {"event": "edit", "title": "Edit"},
+            {"event": "set", "title": "Subject settings",
+             "js": "xadmin.add_tab('Subject settings', '/kaoshi/set?id=' + obj.data.id);"},
+            {"event": "kaohao", "title": "Exam numbers",
+             "js": "xadmin.add_tab('Exam numbers', '/kaohao?kaoshi_id=' + obj.data.id);"},
+            {"event": "luru", "title": "Enter grades",
+             "js": "xadmin.add_tab('Grade entry', '/luru?kaoshi_id=' + obj.data.id);"},
+            {"event": "tongji", "title": "Analytics",
+             "js": "xadmin.add_tab('Analytics', '/chengji?kaoshi_id=' + obj.data.id);"},
         ],
         "can_delete": True,
-        "search_fields": [{"name": "searchval", "label": "关键字", "type": "text"}],
+        "search_fields": [{"name": "searchval", "label": "Keyword", "type": "text"}],
     }
     return templates.TemplateResponse(request, "generic_list.html", {"request": request, "page": page})
 
@@ -94,24 +94,24 @@ def kaoshi_form(request: Request, id: int = 0, db: Session = Depends(get_db)):
             "luru": obj.luru, "status": obj.status, "beizhu": obj.beizhu or "",
         }
     page = {
-        "webtitle": ("编辑" if obj else "新增") + "考试",
+        "webtitle": ("Edit" if obj else "New") + "Exam",
         "url": "/api/kaoshi/save",
         "formpost": "POST",
         "fields": [
-            {"name": "title", "label": "考试名称", "type": "text", "required": True},
-            {"name": "zuzhi_id", "label": "组织单位", "type": "select",
+            {"name": "title", "label": "ExamName", "type": "text", "required": True},
+            {"name": "zuzhi_id", "label": "Organising school", "type": "select",
              "options": [{"value": s.id, "label": s.title}
                          for s in db.scalars(select(School).where(School.delete_time.is_(None))).all()]},
-            {"name": "xueqi_id", "label": "所属学期", "type": "select",
+            {"name": "xueqi_id", "label": "Semester", "type": "select",
              "options": [{"value": x.id, "label": x.title}
                          for x in db.scalars(select(Xueqi).where(Xueqi.delete_time.is_(None))).all()]},
-            {"name": "category_id", "label": "考试类别", "type": "select",
+            {"name": "category_id", "label": "Exam type", "type": "select",
              "options": resolve_options(db, "category:109")},
-            {"name": "bfdate", "label": "开始日期", "type": "date"},
-            {"name": "enddate", "label": "结束日期", "type": "date"},
-            {"name": "luru", "label": "允许录入", "type": "switch"},
-            {"name": "status", "label": "状态", "type": "switch"},
-            {"name": "beizhu", "label": "备注", "type": "textarea"},
+            {"name": "bfdate", "label": "Start date", "type": "date"},
+            {"name": "enddate", "label": "End date", "type": "date"},
+            {"name": "luru", "label": "Open for entry", "type": "switch"},
+            {"name": "status", "label": "Status", "type": "switch"},
+            {"name": "beizhu", "label": "Note", "type": "textarea"},
         ],
         "obj": data,
     }
@@ -149,7 +149,7 @@ async def kaoshi_list(request: Request, db: Session = Depends(get_db)):
 async def kaoshi_save(request: Request, db: Session = Depends(get_db)):
     user, cat, redirect = require_admin(request, db)
     if redirect:
-        return fail("未登录")
+        return fail("Not signed in")
     form = await _form(request)
     oid = int_or(form, "id")
     obj = db.get(Kaoshi, oid) if oid else None
@@ -167,24 +167,24 @@ async def kaoshi_save(request: Request, db: Session = Depends(get_db)):
     obj.beizhu = form.get("beizhu")
     obj.update_time = now_ts()
     db.commit()
-    return ok("保存成功", {"id": obj.id})
+    return ok("Saved", {"id": obj.id})
 
 
 @router.delete("/api/kaoshi/delete")
 async def kaoshi_delete(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     n = crud.soft_delete(db, Kaoshi, str(form.get("id", "")))
-    return ok(f"已删除 {n} 条") if n else fail("没有可删除的记录")
+    return ok(f"Deleted {n} rows") if n else fail("No record to delete")
 
 
 @router.post("/api/kaoshi/status")
 async def kaoshi_status(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     return (
-        ok("已修改")
+        ok("Updated")
         if crud.set_status(db, Kaoshi, int_or(form, "id"), int_or(form, "value", 0),
                            form.get("ziduan") or "status")
-        else fail("记录不存在")
+        else fail("Record not found")
     )
 
 
@@ -212,7 +212,7 @@ def kaoshi_set_page(request: Request, id: int = 0, db: Session = Depends(get_db)
             "kaoshi": ks,
             "grades": grades,
             "subjects": [{"id": s.id, "title": s.title} for s in subjects],
-            "page": {"webtitle": f"{ks.title if ks else ''} - 学科设置", "kaoshi_id": id},
+            "page": {"webtitle": f"{ks.title if ks else ''} - Subject settings", "kaoshi_id": id},
         },
     )
 
@@ -242,24 +242,24 @@ async def set_save(request: Request, db: Session = Depends(get_db)):
     oid = int_or(form, "id")
     obj = db.get(KaoshiSet, oid) if oid else None
     if obj is None:
-        return fail("记录不存在")
+        return fail("Record not found")
     for f in ("manfen", "youxiu", "lianghao", "jige"):
         v = int_or(form, f)
         if v is not None:
             setattr(obj, f, v)
     obj.update_time = now_ts()
     db.commit()
-    return ok("已保存")
+    return ok("Saved")
 
 
 @router.post("/api/kaoshi/set_init")
 async def set_init(request: Request, db: Session = Depends(get_db)):
-    """为某年级初始化学科分数线：把「参加考试」的学科全部按默认满分写入。"""
+    """为某Grade初始化Subject分数线: 把「Takes exams」的SubjectAll按默认Full mark写入。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     ruxuenian = int_or(form, "ruxuenian", 0)
     if not kid or not ruxuenian:
-        return fail("缺少考试或年级")
+        return fail("Exam or grade is missing")
 
     nianjiname = form.get("nianjiname") or kh_service._nianji_name(ruxuenian)
     exist = {
@@ -286,14 +286,14 @@ async def set_init(request: Request, db: Session = Depends(get_db)):
         )
         added += 1
     db.commit()
-    return ok(f"已初始化 {added} 个学科", {"added": added})
+    return ok(f"Initialised {added} subjects", {"added": added})
 
 
 @router.delete("/api/kaoshi/set_delete")
 async def set_delete(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     n = crud.soft_delete(db, KaoshiSet, str(form.get("id", "")))
-    return ok(f"已删除 {n} 条") if n else fail("没有可删除的记录")
+    return ok(f"Deleted {n} rows") if n else fail("No record to delete")
 
 
 # ================================================================== 考号
@@ -317,7 +317,7 @@ def kaohao_page(request: Request, kaoshi_id: int = 0, db: Session = Depends(get_
             "request": request,
             "exams": exams,
             "kaoshi_id": kaoshi_id,
-            "page": {"webtitle": "考号管理"},
+            "page": {"webtitle": "Exam numbers"},
         },
     )
 
@@ -348,7 +348,7 @@ async def kaohao_list(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/kaohao/print")
 def kaohao_print(request: Request, kaoshi_id: int = 0, db: Session = Depends(get_db)):
-    """试卷标签：可直接打印的考号贴纸。"""
+    """试卷标签: 可直接打印的Exam no.贴纸。"""
     user, cat, redirect = require_admin(request, db)
     if redirect:
         return redirect
@@ -371,22 +371,22 @@ def kaohao_print(request: Request, kaoshi_id: int = 0, db: Session = Depends(get
         for r in rows
     ]
     return templates.TemplateResponse(request, "kaohao_print.html",
-        {"request": request, "kaoshi": ks, "labels": labels, "page": {"webtitle": "试卷标签"}},
+        {"request": request, "kaoshi": ks, "labels": labels, "page": {"webtitle": "Label sheet"}},
     )
 
 
 @router.post("/api/kaohao/generate")
 async def kaohao_generate(request: Request, db: Session = Depends(get_db)):
-    """为选中的班级生成考号。"""
+    """为选中的Class生成Exam no.。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     banji_ids = [int(x) for x in str(form.get("banji_ids", "")).split(",") if x.strip().isdigit()]
     if not kid:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     if not banji_ids:
-        return fail("请先选择班级")
+        return fail("Select a class first")
     res = kh_service.generate(kid, banji_ids, db)
-    return ok(f"新增 {res['created']} 个考号，跳过已存在的 {res['skipped']} 个", res)
+    return ok(f"Created {res['created']} exam numbers, skipped {res['skipped']} existing", res)
 
 
 @router.post("/api/kaohao/clear")
@@ -394,10 +394,10 @@ async def kaohao_clear(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     if not kid:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     # 先删成绩，再删考号
     kh_ids = [k.id for k in db.scalars(select(Kaohao).where(Kaohao.kaoshi_id == kid)).all()]
     if kh_ids:
         db.query(Chengji).filter(Chengji.kaohao_id.in_(kh_ids)).delete(synchronize_session=False)
     n = kh_service.delete_by_kaoshi(kid, db)
-    return ok(f"已清空 {n} 个考号及其成绩")
+    return ok(f"Cleared {n} exam numbers and their grades")

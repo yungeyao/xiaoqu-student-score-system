@@ -18,8 +18,8 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
@@ -27,10 +27,10 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">考试</label>
+          <label class="layui-form-label" style="width:60px;">Exam</label>
           <div class="layui-input-inline" style="width:190px;">
             <select name="kaoshi_id" id="kaoshi_id">
-              <option value="">请选择</option>
+              <option value="">Select</option>
               {% for e in exams %}
               <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
               {% endfor %}
@@ -38,30 +38,30 @@
           </div>
         </div>
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">班级</label>
+          <label class="layui-form-label" style="width:60px;">Class</label>
           <div class="layui-input-inline" style="width:150px;">
             <select name="banji_id" id="banji_id">
-              <option value="">全部</option>
+              <option value="">All</option>
               {% for b in banjis %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">姓名</label>
+          <label class="layui-form-label" style="width:60px;">Name</label>
           <div class="layui-input-inline" style="width:120px;">
             <input type="text" name="searchval" id="searchval" class="layui-input">
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">查询</button>
-          <button type="button" class="layui-btn" id="btnExport">导出 Excel</button>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">Query</button>
+          <button type="button" class="layui-btn" id="btnExport">Export Excel</button>
         </div>
       </div>
     </form>
   </div>
 
   <div id="grid" style="margin-top:10px;">
-    <div class="empty">请选择考试后点「查询」</div>
+    <div class="empty">Select an exam, then click Query</div>
   </div>
 
   <div class="stat-strip" id="statStrip" style="display:none;"></div>
@@ -73,7 +73,7 @@ layui.use(['form', 'layer'], function () {
 
   function load() {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { layer.msg('请选择考试'); return; }
+    if (!kid) { layer.msg('Select an exam'); return; }
     $.post('/api/chengji/subjects', { kaoshi_id: kid }, function (res) {
       if (res.val != 1) { layer.msg(res.msg); return; }
       var subs = res.data;
@@ -81,21 +81,21 @@ layui.use(['form', 'layer'], function () {
         kaoshi_id: kid, banji_id: $('#banji_id').val(),
         searchval: $('#searchval').val(), page: 1, limit: 500
       }, function (r2) {
-        if (!r2.data.length) { $('#grid').html('<div class="empty">暂无成绩数据</div>'); return; }
-        var html = '<table class="layui-table"><thead><tr><th>考号</th><th>姓名</th><th>班级</th>';
+        if (!r2.data.length) { $('#grid').html('<div class="empty">No grade data</div>'); return; }
+        var html = '<table class="layui-table"><thead><tr><th>Exam no.</th><th>Name</th><th>Class</th>';
         $.each(subs, function (i, s) { html += '<th>' + s.title + '</th>'; });
-        html += '<th>总分</th></tr></thead><tbody>';
+        html += '<th>Total</th></tr></thead><tbody>';
         $.each(r2.data, function (i, row) {
           html += '<tr><td>' + (row.kaohao || '') + '</td><td>' + row.student_name + '</td><td>' + row.banji_name + '</td>';
           $.each(subs, function (j, s) {
             var v = row['s' + s.id];
-            html += '<td>' + (v === null || v === undefined ? '<span style="color:#ccc;">缺考</span>' : v) + '</td>';
+            html += '<td>' + (v === null || v === undefined ? '<span style="color:#ccc;">Absent</span>' : v) + '</td>';
           });
           html += '<td><b>' + (row.total === null || row.total === undefined ? '-' : row.total) + '</b></td></tr>';
         });
         html += '</tbody></table>';
         $('#grid').html(html);
-        $('#statStrip').show().html('共 ' + r2.count + ' 名学生');
+        $('#statStrip').show().html('Total ' + r2.count + ' students');
       }, 'json');
     }, 'json');
   }
@@ -103,7 +103,7 @@ layui.use(['form', 'layer'], function () {
   $('#btnLoad').on('click', load);
   $('#btnExport').on('click', function () {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { layer.msg('请选择考试'); return; }
+    if (!kid) { layer.msg('Select an exam'); return; }
     location.href = '/api/luru/export?kaoshi_id=' + kid + '&banji_id=' + ($('#banji_id').val() || 0);
   });
   {% if kaoshi_id %}$('#btnLoad').trigger('click');{% endif %}

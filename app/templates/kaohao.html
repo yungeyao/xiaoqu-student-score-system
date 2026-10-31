@@ -18,8 +18,8 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
@@ -27,10 +27,10 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">考试</label>
+          <label class="layui-form-label" style="width:60px;">Exam</label>
           <div class="layui-input-inline" style="width:200px;">
             <select name="kaoshi_id" id="kaoshi_id">
-              <option value="">请选择考试</option>
+              <option value="">Select an exam</option>
               {% for e in exams %}
               <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
               {% endfor %}
@@ -38,22 +38,22 @@
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnGen">为选中班级生成考号</button>
-          <button type="button" class="layui-btn layui-btn-danger" id="btnClear">清空本场考号</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnReload">刷新列表</button>
-          <a class="layui-btn layui-btn-primary" target="_blank" id="btnPrint">打印试卷标签</a>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnGen">Generate exam numbers</button>
+          <button type="button" class="layui-btn layui-btn-danger" id="btnClear">Clear exam numbers</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnReload">Refresh</button>
+          <a class="layui-btn layui-btn-primary" target="_blank" id="btnPrint">Print labels</a>
         </div>
       </div>
     </form>
   </div>
 
   <div class="banji-pick" id="banjiPick">
-    <div style="margin-bottom:8px;font-size:13px;color:#666;">参加考试的班级：</div>
+    <div style="margin-bottom:8px;font-size:13px;color:#666;">Classes taking the exam: </div>
     <div id="banjiList"></div>
   </div>
 
   <div id="grid" style="margin-top:10px;">
-    <div class="empty">请选择考试</div>
+    <div class="empty">Select an exam</div>
   </div>
 </div>
 
@@ -65,7 +65,7 @@ layui.use(['form', 'layer'], function () {
     $.post('/api/banji/list', { limit: 500, page: 1 }, function (res) {
       var html = '';
       $.each(res.data, function (i, b) {
-        html += '<label><input type="checkbox" class="bj" value="' + b.id + '" lay-skin="primary" title="' + b.school_id_name + ' ' + b.ruxuenian + '级' + b.paixu + '班"></label>';
+        html += '<label><input type="checkbox" class="bj" value="' + b.id + '" lay-skin="primary" title="' + b.school_id_name + ' ' + b.ruxuenian + ' Grade Class ' + b.paixu + '"></label>';
       });
       $('#banjiList').html(html);
       form.render('checkbox');
@@ -74,25 +74,25 @@ layui.use(['form', 'layer'], function () {
 
   function loadTable() {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { $('#grid').html('<div class="empty">请选择考试</div>'); return; }
+    if (!kid) { $('#grid').html('<div class="empty">Select an exam</div>'); return; }
     $.post('/api/kaohao/list', { kaoshi_id: kid }, function (res) {
-      if (!res.data.length) { $('#grid').html('<div class="empty">本场考试还没有考号</div>'); return; }
-      var html = '<table class="layui-table"><thead><tr><th>考号</th><th>姓名</th><th>班级</th><th>年级</th><th>入学年</th><th>班内序号</th></tr></thead><tbody>';
+      if (!res.data.length) { $('#grid').html('<div class="empty">No exam numbers for this exam</div>'); return; }
+      var html = '<table class="layui-table"><thead><tr><th>Exam no.</th><th>Name</th><th>Class</th><th>Grade</th><th>Cohort</th><th>Seat no.</th></tr></thead><tbody>';
       $.each(res.data, function (i, r) {
         html += '<tr><td><b>' + r.kaohao + '</b></td><td>' + r.student_name + '</td><td>' + r.banji_name
              + '</td><td>' + r.nianji + '</td><td>' + r.ruxuenian + '</td><td>' + r.paixu + '</td></tr>';
       });
       html += '</tbody></table>';
-      $('#grid').html('<div style="background:#fff;border:1px solid #eee;padding:10px 14px;font-size:13px;">共 ' + res.count + ' 个考号</div>' + html);
+      $('#grid').html('<div style="background:#fff;border:1px solid #eee;padding:10px 14px;font-size:13px;">Total ' + res.count + ' exam numbers</div>' + html);
     }, 'json');
   }
 
   $('#btnGen').on('click', function () {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { layer.msg('请选择考试'); return; }
+    if (!kid) { layer.msg('Select an exam'); return; }
     var ids = [];
     $('.bj:checked').each(function () { ids.push($(this).val()); });
-    if (!ids.length) { layer.msg('请勾选班级'); return; }
+    if (!ids.length) { layer.msg('Select at least one class'); return; }
     $.post('/api/kaohao/generate', { kaoshi_id: kid, banji_ids: ids.join(',') }, function (res) {
       layer.msg(res.msg); loadTable();
     }, 'json');
@@ -100,8 +100,8 @@ layui.use(['form', 'layer'], function () {
 
   $('#btnClear').on('click', function () {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { layer.msg('请选择考试'); return; }
-    layer.confirm('将删除本场考试的全部考号及其成绩，确定继续？', function () {
+    if (!kid) { layer.msg('Select an exam'); return; }
+    layer.confirm('Delete all exam numbers and their grades for this exam. Continue?', function () {
       $.post('/api/kaohao/clear', { kaoshi_id: kid }, function (res) { layer.msg(res.msg); loadTable(); }, 'json');
     });
   });
@@ -110,7 +110,7 @@ layui.use(['form', 'layer'], function () {
   $('#kaoshi_id').on('change', loadTable);
   $('#btnPrint').on('click', function () {
     var kid = $('#kaoshi_id').val();
-    if (!kid) { layer.msg('请选择考试'); return false; }
+    if (!kid) { layer.msg('Select an exam'); return false; }
     this.href = '/kaohao/print?kaoshi_id=' + kid;
   });
 

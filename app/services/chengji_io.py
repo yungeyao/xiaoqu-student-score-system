@@ -15,7 +15,7 @@ from ..models import Banji, Chengji, Kaohao, Kaoshi, KaoshiSet, Student, Subject
 
 
 def export_template(kaoshi_id: int, banji_id: Optional[int], db) -> io.BytesIO:
-    """导出成绩采集表（含已有成绩）。"""
+    """导出Grade采集表 (含已有Grade)。"""
     kaoshi = db.get(Kaoshi, kaoshi_id)
     subjects = _subjects_of(kaoshi_id, db)
 
@@ -36,9 +36,9 @@ def export_template(kaoshi_id: int, banji_id: Optional[int], db) -> io.BytesIO:
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "成绩采集表"
+    ws.title = "Grade template"
 
-    header = ["考号", "姓名", "班级"] + [s.title for s in subjects]
+    header = ["Exam no.", "Name", "Class"] + [s.title for s in subjects]
     ws.append(header)
 
     banji_cache: dict[int, str] = {}
@@ -61,13 +61,13 @@ def export_template(kaoshi_id: int, banji_id: Optional[int], db) -> io.BytesIO:
 
 
 def import_scores(kaoshi_id: int, file_bytes: bytes, user_id: int, db) -> dict:
-    """导入成绩。返回 {"success": str, "err": [str]}。"""
+    """导入Grade。返回 {"success": str, "err": [str]}。"""
     wb = load_workbook(io.BytesIO(file_bytes), data_only=True)
     ws = wb.active
 
     rows = list(ws.iter_rows(values_only=True))
     if not rows:
-        return {"success": "表格为空", "err": []}
+        return {"success": "The sheet is empty", "err": []}
 
     header = [str(h).strip() if h else "" for h in rows[0]]
     subjects = _subjects_of(kaoshi_id, db)
@@ -82,7 +82,7 @@ def import_scores(kaoshi_id: int, file_bytes: bytes, user_id: int, db) -> dict:
                 break
 
     if not col_subject:
-        return {"success": "", "err": ["表头中未找到任何匹配的学科名称，请先用系统导出的模板填写。"]}
+        return {"success": "", "err": ["No matching subject column found in the header; please use the exported template."]}
 
     # 建立考号 -> Kaohao 的索引
     kh_index: dict[str, Kaohao] = {}
@@ -100,7 +100,7 @@ def import_scores(kaoshi_id: int, file_bytes: bytes, user_id: int, db) -> dict:
         key = str(r[0]).strip()
         kh = kh_index.get(key)
         if kh is None:
-            errs.append(f"第 {rows.index(r) + 1} 行：考号 {key} 不存在于本次考试")
+            errs.append(f"Row {rows.index(r) + 1}: exam number {key} does not belong to this exam")
             continue
 
         for col, subject_id in col_subject.items():
@@ -112,13 +112,13 @@ def import_scores(kaoshi_id: int, file_bytes: bytes, user_id: int, db) -> dict:
                 try:
                     defen = round(float(raw), 1)
                 except (TypeError, ValueError):
-                    errs.append(f"考号 {key}：{header[col]} 的取值“{raw}”不是数字")
+                    errs.append(f"Exam number {key}: value {raw!r} in column {header[col]} is not a number")
                     continue
             _upsert(db, kh.id, subject_id, defen, user_id)
             ok_cnt += 1
 
     db.commit()
-    return {"success": f"成功导入 {ok_cnt} 条成绩", "err": errs}
+    return {"success": f"Imported {ok_cnt} grade rows", "err": errs}
 
 
 def _upsert(db, kaohao_id: int, subject_id: int, defen: Optional[float], user_id: int):
@@ -138,7 +138,7 @@ def _upsert(db, kaohao_id: int, subject_id: int, defen: Optional[float], user_id
 
 
 def _subjects_of(kaoshi_id: int, db) -> list[Subject]:
-    """本次考试涉及的学科（按 kaoshi_set 去重，保持学科表排序）。"""
+    """本次Exam涉及的Subject (按 kaoshi_set 去重, 保持Subject表Order)。"""
     sids = [
         r[0]
         for r in db.execute(

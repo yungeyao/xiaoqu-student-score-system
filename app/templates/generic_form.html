@@ -19,7 +19,7 @@
       <input type="text" name="{{ f.name }}" id="{{ f.name }}" class="layui-input" autocomplete="off"
              placeholder="yyyy-MM-dd" value="{{ page.obj[f.name] or '' }}">
       {% elif f.type == 'switch' %}
-      <input type="checkbox" name="{{ f.name }}" value="1" lay-skin="switch" lay-text="是|否"
+      <input type="checkbox" name="{{ f.name }}" value="1" lay-skin="switch" lay-text="Yes|No"
              {% if page.obj[f.name] %}checked{% endif %}>
       {% else %}
       <input type="{{ f.type or 'text' }}" name="{{ f.name }}" class="layui-input"
@@ -30,8 +30,8 @@
   </div>
   {% endfor %}
   <div class="layui-form-item" style="text-align:center;">
-    <button class="layui-btn" lay-submit lay-filter="mysubmit">保 存</button>
-    <button type="button" class="layui-btn layui-btn-primary" onclick="var i=parent.layer.getFrameIndex(window.name);parent.layer.close(i);">关 闭</button>
+    <button class="layui-btn" lay-submit lay-filter="mysubmit">Save</button>
+    <button type="button" class="layui-btn layui-btn-primary" onclick="var i=parent.layer.getFrameIndex(window.name);parent.layer.close(i);">Close</button>
   </div>
 </form>
 {% endblock %}

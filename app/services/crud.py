@@ -36,7 +36,7 @@ def keyword_where(model, fields: list[str], keyword: Optional[str]):
 
 
 def paginate(db: Session, stmt, page: int, limit: int):
-    """执行分页查询，返回 (rows, total)。"""
+    """执行分页查询, 返回 (rows, total)。"""
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.execute(stmt.offset((page - 1) * limit).limit(limit)).scalars().all()
     return rows, total
@@ -76,7 +76,7 @@ def save_one(db: Session, model, form: dict, obj_id: Optional[int], fields: list
 
 
 def soft_delete(db: Session, model, id_str: str) -> int:
-    """软删除，支持逗号分隔的批量 id。"""
+    """软删除, 支持逗号分隔的批量 id。"""
     from ..models.base import now_ts
 
     ids = [int(x) for x in str(id_str).split(",") if str(x).strip().isdigit()]

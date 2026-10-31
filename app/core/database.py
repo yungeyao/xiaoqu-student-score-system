@@ -18,7 +18,7 @@ class Base(DeclarativeBase):
 
 
 def get_db():
-    """FastAPI 依赖：每个请求一个会话。"""
+    """FastAPI 依赖: 每个请求一个会话。"""
     db = SessionLocal()
     try:
         yield db

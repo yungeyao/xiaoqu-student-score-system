@@ -17,7 +17,7 @@ def now_ts() -> int:
 
 
 def ts_to_str(ts: Optional[int], fmt: str = "%Y-%m-%d") -> str:
-    """时间戳转字符串，供前端展示。"""
+    """时间戳转字符串, 供前端展示。"""
     if not ts:
         return ""
     try:
@@ -60,8 +60,8 @@ class TimestampMixin:
 
 
 class StatusMixin:
-    """0=禁用，1=正常"""
-    status: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=禁用，1=正常")
+    """0=禁用, 1=正常"""
+    status: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="0=禁用, 1=正常")
 
 
 __all__ = ["Base", "TimestampMixin", "StatusMixin", "now_ts", "ts_to_str", "str_to_ts"]

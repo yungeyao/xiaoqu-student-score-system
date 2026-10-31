@@ -1,4 +1,4 @@
-"""school 单位 / banji 班级 / xueqi 学期 / subject 学科。"""
+"""school Schools / banji Class / xueqi Semester / subject Subject。"""
 from typing import Optional
 
 from sqlalchemy import Integer, String
@@ -11,16 +11,16 @@ class School(TimestampMixin, StatusMixin, Base):
     __tablename__ = "school"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="单位名称")
-    jiancheng: Mapped[str] = mapped_column(String(6), nullable=False, comment="单位简称")
-    biaoshi: Mapped[Optional[str]] = mapped_column(String(11), nullable=True, comment="单位标识")
-    xingzhi_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="单位性质")
-    jibie_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="单位级别")
-    xueduan_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="学段")
+    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="SchoolsName")
+    jiancheng: Mapped[str] = mapped_column(String(6), nullable=False, comment="Short name")
+    biaoshi: Mapped[Optional[str]] = mapped_column(String(11), nullable=True, comment="School code")
+    xingzhi_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="School type")
+    jibie_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="School level")
+    xueduan_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="Stage")
     kaoshi: Mapped[int] = mapped_column(
-        Integer, default=0, nullable=False, comment="能不能组织考试，0=不能，1=能"
+        Integer, default=0, nullable=False, comment="能不能Organises exams, 0=不能, 1=能"
     )
-    paixu: Mapped[int] = mapped_column(Integer, default=999, nullable=False, comment="排序")
+    paixu: Mapped[int] = mapped_column(Integer, default=999, nullable=False, comment="Order")
     beizhu: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
 
     @property
@@ -36,11 +36,11 @@ class Xueqi(TimestampMixin, StatusMixin, Base):
     __tablename__ = "xueqi"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="学期标题")
-    xuenian: Mapped[str] = mapped_column(String(15), nullable=False, comment="学年标题")
-    category_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="学期分类")
-    bfdate: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="开始日期")
-    enddate: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="结束日期")
+    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="Semester标题")
+    xuenian: Mapped[str] = mapped_column(String(15), nullable=False, comment="Academic year标题")
+    category_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="Semester分类")
+    bfdate: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="Start date")
+    enddate: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="End date")
     beizhu: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
 
 
@@ -49,10 +49,10 @@ class Banji(TimestampMixin, StatusMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     school_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="学校")
-    ruxuenian: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="入学年")
-    xueduan_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="学段")
-    paixu: Mapped[int] = mapped_column(Integer, default=100, nullable=False, comment="排序")
-    alias: Mapped[Optional[str]] = mapped_column(String(24), nullable=True, comment="班级别名")
+    ruxuenian: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="Cohort")
+    xueduan_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="Stage")
+    paixu: Mapped[int] = mapped_column(Integer, default=100, nullable=False, comment="Order")
+    alias: Mapped[Optional[str]] = mapped_column(String(24), nullable=True, comment="Class别名")
 
     # 非外键关联：school_id 只是普通整型列，这里显式声明 foreign 以便预加载学校
     school: Mapped[Optional["School"]] = relationship(
@@ -69,7 +69,7 @@ class Banji(TimestampMixin, StatusMixin, Base):
         不按学段推算年级名，改用「入学年 + 序号」的通用写法，学段调整时不用改数据。
         例如 2021 年入学、排序 3 -> 3班；完整显示名见 full_title。
         """
-        return f"{self.paixu}班"
+        return f"Class {self.paixu}"
 
     @property
     def full_title(self) -> str:
@@ -77,23 +77,23 @@ class Banji(TimestampMixin, StatusMixin, Base):
 
         多所学校存在同名班级（各校都有 1班/2班），跨校统计必须带上学校才能区分。
         """
-        base = f"{self.ruxuenian}级{self.paixu}班" if self.ruxuenian else f"{self.paixu}班"
+        base = f"Class {self.paixu} ({self.ruxuenian})" if self.ruxuenian else f"Class {self.paixu}"
         sch = getattr(self, "school", None)
         if sch is None:
             return base
-        return f"{sch.jiancheng or sch.title}{base}"
+        return f"{sch.jiancheng or sch.title} · {base}"
 
 
 class Subject(TimestampMixin, StatusMixin, Base):
     __tablename__ = "subject"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="学科名称")
-    jiancheng: Mapped[str] = mapped_column(String(6), nullable=False, comment="简称")
-    lieming: Mapped[str] = mapped_column(String(46), nullable=False, comment="列名")
-    category_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="大学科类别")
-    kaoshi: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="是否参与考试")
-    paixu: Mapped[int] = mapped_column(Integer, default=999, nullable=False, comment="排序")
+    title: Mapped[str] = mapped_column(String(25), nullable=False, comment="SubjectName")
+    jiancheng: Mapped[str] = mapped_column(String(6), nullable=False, comment="Short name")
+    lieming: Mapped[str] = mapped_column(String(46), nullable=False, comment="Column name")
+    category_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="大Subject类别")
+    kaoshi: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="Takes exams")
+    paixu: Mapped[int] = mapped_column(Integer, default=999, nullable=False, comment="Order")
     beizhu: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
 
 

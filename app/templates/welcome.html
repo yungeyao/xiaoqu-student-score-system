@@ -2,7 +2,7 @@
 <html class="x-admin-sm">
 <head>
   <meta charset="UTF-8">
-  <title>我的桌面</title>
+  <title>My Dashboard</title>
   <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
   <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
   <script src="{{ XADMIN }}/js/jquery.min.js"></script>
@@ -19,18 +19,18 @@
 <body>
 <div class="x-body" style="padding:15px;">
   <div class="layui-row layui-col-space15">
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.kaoshi }}</div><div class="stat-label">考试场次</div></div></div>
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.student }}</div><div class="stat-label">在校学生</div></div></div>
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.banji }}</div><div class="stat-label">班级</div></div></div>
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.teacher }}</div><div class="stat-label">教师</div></div></div>
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.course }}</div><div class="stat-label">课程</div></div></div>
-    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.attendance }}</div><div class="stat-label">考勤记录</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.kaoshi }}</div><div class="stat-label">Exams</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.student }}</div><div class="stat-label">Students</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.banji }}</div><div class="stat-label">Classes</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.teacher }}</div><div class="stat-label">Teachers</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.course }}</div><div class="stat-label">Courses</div></div></div>
+    <div class="layui-col-md2"><div class="stat-card"><div class="stat-num">{{ stats.attendance }}</div><div class="stat-label">Attendance rows</div></div></div>
   </div>
 
   <div class="panel">
-    <h3>最近考试</h3>
+    <h3>Recent exams</h3>
     <table class="layui-table">
-      <thead><tr><th>考试名称</th><th>学期</th><th>开始日期</th><th>结束日期</th><th>状态</th></tr></thead>
+      <thead><tr><th>Exam</th><th>Semester</th><th>Start date</th><th>End date</th><th>Status</th></tr></thead>
       <tbody>
       {% for k in recent %}
         <tr>
@@ -38,25 +38,25 @@
           <td>{{ k.xueqi or '-' }}</td>
           <td>{{ k.bfdate }}</td>
           <td>{{ k.enddate }}</td>
-          <td>{{ '允许录入' if k.luru else '已结束' }}</td>
+          <td>{{ 'Open for entry' if k.luru else 'Closed' }}</td>
         </tr>
       {% else %}
-        <tr><td colspan="5" style="text-align:center;color:#999;">暂无考试</td></tr>
+        <tr><td colspan="5" style="text-align:center;color:#999;">No exams</td></tr>
       {% endfor %}
       </tbody>
     </table>
   </div>
 
   <div class="panel">
-    <h3>使用流程</h3>
+    <h3>Workflow</h3>
     <ol style="line-height:2;color:#555;font-size:13px;padding-left:20px;">
-      <li>基础数据：录入学校、学期、班级、学科、学生、教师</li>
-      <li>教学管理：开设课程 → 学生选课 → 按课程与日期录入考勤</li>
-      <li>考试管理：新建考试 → 设置参加考试的年级与学科分数线 → 生成考号</li>
-      <li>成绩管理：在线录入或下载采集表批量导入，支持多条件查询</li>
-      <li>统计分析：执行统计后查看班级 / 年级 / 全校三个层级的数据与图表</li>
-      <li>学业预警：按不及格科目、缺考、班级均分差距与到课率识别风险学生</li>
-      <li>报表中心：一键生成班级成绩报表（可打印）与 Excel 导出</li>
+      <li>Basic data: schools, semesters, classes, subjects, students and teachers</li>
+      <li>Teaching: create courses → enrol students → record attendance by course and date</li>
+      <li>Exams: create an exam → set subject thresholds per grade → generate exam numbers</li>
+      <li>Grades: enter scores online or import from the Excel template; query with filters</li>
+      <li>Analytics: recalculate, then read class, grade and school-level statistics and charts</li>
+      <li>Academic risk: flag students by failed subjects, absences, gap to class average and attendance</li>
+      <li>Reports: one-click printable class report and Excel export</li>
     </ol>
   </div>
 </div>

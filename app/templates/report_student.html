@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>成绩单 · {{ d.student.xingming }}</title>
+  <title>Report card · {{ d.student.xingming }}</title>
   <style>
     body {
       font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
@@ -36,29 +36,29 @@
   </style>
 </head>
 <body>
-<div class="toolbar"><button onclick="window.print()">打印 / 另存 PDF</button></div>
+<div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button></div>
 
 <div class="sheet">
-  <h1>学生成绩单</h1>
+  <h1>Report Card</h1>
   <div class="sub">{{ d.school }} · {{ d.exam.title }}</div>
 
   <div class="info">
-    <span>姓名：<b>{{ d.student.xingming }}</b></span>
-    <span>班级：<b>{{ d.banji }}</b></span>
-    <span>考号：<b>{{ d.kaohao or '-' }}</b></span>
-    <span>学期：<b>{{ d.xueqi or '-' }}</b></span>
-    <span>考试日期：<b>{{ d.exam_date }}</b></span>
+    <span>Name: <b>{{ d.student.xingming }}</b></span>
+    <span>Class: <b>{{ d.banji }}</b></span>
+    <span>Exam no.: <b>{{ d.kaohao or '-' }}</b></span>
+    <span>Semester: <b>{{ d.xueqi or '-' }}</b></span>
+    <span>Exam date: <b>{{ d.exam_date }}</b></span>
   </div>
 
   <table>
     <thead>
-    <tr><th style="width:34%;">学科</th><th>得分</th><th>班内排名</th><th>标准分(Z)</th></tr>
+    <tr><th style="width:34%;">Subject</th><th>Score</th><th>Class rank</th><th>Z-score</th></tr>
     </thead>
     <tbody>
     {% for c in d.cells %}
     <tr>
       <td>{{ c.subject }}</td>
-      <td>{{ c.defen if c.defen is not none else '缺考' }}</td>
+      <td>{{ c.defen if c.defen is not none else 'Absent' }}</td>
       <td>{{ c.paixu if c.paixu else '-' }}</td>
       <td>{{ c.biaozhunfen if c.biaozhunfen is not none else '-' }}</td>
     </tr>
@@ -66,23 +66,23 @@
     </tbody>
   </table>
 
-  <div class="total">总分：<b>{{ d.total if d.total is not none else '缺考' }}</b></div>
+  <div class="total">Total: <b>{{ d.total if d.total is not none else 'Absent' }}</b></div>
 
-  {% if d.risk_level == '正常' %}
+  {% if d.risk_level == 'Normal' %}
   <div class="risk ok">
-    <h3>学业状态：正常</h3>
-    <div>各科成绩与到课情况未触发预警规则，请继续保持。</div>
+    <h3>Academic status: Normal</h3>
+    <div>No risk rule was triggered by the grades or attendance. Keep it up.</div>
   </div>
   {% else %}
   <div class="risk">
-    <h3>学业状态：{{ d.risk_level }}</h3>
+    <h3>Academic status: {{ d.risk_level }}</h3>
     <div>{{ d.risk_reasons or '-' }}</div>
-    <div>建议与任课教师沟通，针对薄弱学科制定改进计划。</div>
+    <div>Talk to the subject teacher and plan for the weak subjects.</div>
   </div>
   {% endif %}
 
   <div class="note">
-    说明：缺考科目不计入总分；标准分 Z =（得分 − 全区平均分）/ 全区标准差；班内排名为同学科内的名次。
+    Absent subjects are excluded from the total; Z = (score - district mean) / district SD; rank is within the same subject.
   </div>
 </div>
 </body>

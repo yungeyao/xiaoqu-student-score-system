@@ -36,7 +36,7 @@ class Chengji(TimestampMixin, StatusMixin, Base):
     user_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="录入人")
     subject_id: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="学科")
     defen: Mapped[Optional[float]] = mapped_column(
-        DECIMAL(5, 1), nullable=True, default=None, comment="得分，NULL=缺考"
+        DECIMAL(5, 1), nullable=True, default=None, comment="得分, NULL=缺考"
     )
     defenlv: Mapped[Optional[float]] = mapped_column(
         DECIMAL(6, 2), nullable=True, default=None, comment="得分率"

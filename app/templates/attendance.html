@@ -25,8 +25,8 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
@@ -34,10 +34,10 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:50px;">课程</label>
+          <label class="layui-form-label" style="width:50px;">Course</label>
           <div class="layui-input-inline" style="width:280px;">
             <select id="course_id">
-              <option value="">请选择课程</option>
+              <option value="">Select a course</option>
               {% for c in page.courses %}
               <option value="{{ c.id }}">{{ c.title }}</option>
               {% endfor %}
@@ -45,29 +45,29 @@
           </div>
         </div>
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:50px;">日期</label>
+          <label class="layui-form-label" style="width:50px;">Date</label>
           <div class="layui-input-inline" style="width:160px;">
             <input type="date" id="riqi" class="layui-input" value="{{ page.today }}">
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">载入名单</button>
-          <button type="button" class="layui-btn" id="btnSave">保存考勤</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnStats">考勤统计</button>
-          <span class="hint">出勤/迟到/请假都计入到课率；未保存过的学生默认按出勤载入</span>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">Load list</button>
+          <button type="button" class="layui-btn" id="btnSave">Save attendance</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnStats">Attendance stats</button>
+          <span class="hint">Present, late and leave all count as attended; students without a record default to Present</span>
         </div>
       </div>
     </form>
   </div>
 
   <div id="grid" style="margin-top:10px;">
-    <div class="empty">请选择课程和日期后点「载入名单」</div>
+    <div class="empty">Select a course and a date, then click Load List</div>
   </div>
 
   <div id="statsPanel" class="panel" style="display:none;">
-    <h3>按日期出勤</h3>
+    <h3>Attendance by date</h3>
     <div id="dayStats"></div>
-    <h3 style="margin-top:16px;">学生到课率（由低到高）</h3>
+    <h3 style="margin-top:16px;">Student attendance (low to high)</h3>
     <div id="stuStats"></div>
   </div>
 </div>
@@ -85,14 +85,14 @@ function statusOptions(cur) {
 function load() {
   var course_id = $('#course_id').val();
   var riqi = $('#riqi').val();
-  if (!course_id) { layer.msg('请选择课程'); return; }
-  if (!riqi) { layer.msg('请选择日期'); return; }
+  if (!course_id) { layer.msg('Select a course'); return; }
+  if (!riqi) { layer.msg('Select a date'); return; }
   $.post('/api/attendance/students', { course_id: course_id, riqi: riqi }, function (res) {
     if (res.val !== 1) { layer.msg(res.msg); return; }
     ROWS = res.data.students;
     var html = '<table class="att-table"><thead><tr>'
-      + '<th style="width:60px;">序号</th><th style="width:120px;">姓名</th>'
-      + '<th style="width:140px;">出勤状态</th><th>备注</th></tr></thead><tbody>';
+      + '<th style="width:60px;">No.</th><th style="width:120px;">Name</th>'
+      + '<th style="width:140px;">Attendance status</th><th>Note</th></tr></thead><tbody>';
     $.each(ROWS, function (i, r) {
       html += '<tr>'
         + '<td>' + (i + 1) + '</td>'
@@ -109,7 +109,7 @@ function load() {
 function save() {
   var course_id = $('#course_id').val();
   var riqi = $('#riqi').val();
-  if (!course_id) { layer.msg('请选择课程'); return; }
+  if (!course_id) { layer.msg('Select a course'); return; }
   var rows = [];
   $('.att-table tbody tr').each(function () {
     var sel = $(this).find('select.st');
@@ -120,7 +120,7 @@ function save() {
       beizhu: rm.val()
     });
   });
-  if (!rows.length) { layer.msg('请先载入名单'); return; }
+  if (!rows.length) { layer.msg('Load the list first'); return; }
   $.post('/api/attendance/save',
     { course_id: course_id, riqi: riqi, rows: JSON.stringify(rows) },
     function (res) { layer.msg(res.msg); }, 'json');
@@ -128,12 +128,12 @@ function save() {
 
 function stats() {
   var course_id = $('#course_id').val();
-  if (!course_id) { layer.msg('请选择课程'); return; }
+  if (!course_id) { layer.msg('Select a course'); return; }
   $.post('/api/attendance/stats', { course_id: course_id }, function (res) {
     if (res.val !== 1) { layer.msg(res.msg); return; }
     var d = res.data;
-    var h1 = '<table class="att-table"><thead><tr><th>日期</th><th>应到</th><th>实到</th>'
-      + '<th>缺勤</th><th>出勤率</th></tr></thead><tbody>';
+    var h1 = '<table class="att-table"><thead><tr><th>Date</th><th>Expected</th><th>Present</th>'
+      + '<th>Absent</th><th>Attendance</th></tr></thead><tbody>';
     $.each(d.days, function (i, r) {
       var rate = r.total ? (r.present / r.total * 100).toFixed(1) : '-';
       h1 += '<tr><td>' + r.riqi + '</td><td>' + r.total + '</td><td>' + r.present + '</td>'
@@ -141,8 +141,8 @@ function stats() {
     });
     h1 += '</tbody></table>';
 
-    var h2 = '<table class="att-table"><thead><tr><th>姓名</th><th>记录数</th><th>缺勤</th>'
-      + '<th>迟到</th><th>请假</th><th>到课率</th></tr></thead><tbody>';
+    var h2 = '<table class="att-table"><thead><tr><th>Name</th><th>Records</th><th>Absent</th>'
+      + '<th>Late</th><th>Leave</th><th>Attendance</th></tr></thead><tbody>';
     $.each(d.students, function (i, r) {
       h2 += '<tr><td>' + r.xingming + '</td><td>' + r.total + '</td><td>' + r.absent + '</td>'
         + '<td>' + r.late + '</td><td>' + r.leave + '</td>'
@@ -163,7 +163,7 @@ layui.use(['form', 'layer'], function () {
   $('#btnStats').on('click', stats);
   $('#course_id').on('change', function () { if ($(this).val()) load(); });
 
-  // 从课程列表点进来时预选课程
+  // Preselect the course when opened from the course list
   var preselect = {{ page.preselect or 0 }};
   if (preselect) {
     $('#course_id').val(String(preselect));

@@ -46,72 +46,72 @@ from app.services import kaohao as kh_service  # noqa: E402
 random.seed(20261023)
 
 CATEGORIES = [
-    (101, "单位性质", 0), (10101, "小学", 101), (10102, "九年一贯", 101), (10103, "初中", 101),
-    (102, "单位级别", 0), (10201, "校级", 102), (10202, "区级", 102), (10203, "市级", 102),
-    (103, "学段", 0), (10301, "小学", 103), (10302, "初中", 103), (10303, "高中", 103),
-    (105, "学历", 0), (10501, "专科", 105), (10502, "本科", 105), (10503, "硕士研究生", 105),
-    (106, "职称", 0), (10601, "正高级", 106), (10602, "高级", 106), (10603, "一级", 106), (10604, "二级", 106),
-    (107, "职务", 0), (10701, "校长、书记", 107), (10702, "副书记", 107),
-    (10703, "教学副校长", 107), (10704, "德育副校长", 107), (10705, "教学主任", 107), (10710, "其他", 107),
-    (108, "学期", 0), (10801, "第一学期", 108), (10802, "第二学期", 108),
-    (109, "考试", 0), (10901, "期末考试", 109), (10902, "期中考试", 109), (10903, "单项测试", 109),
-    (110, "学科", 0), (11001, "语文", 110), (11002, "数学", 110), (11003, "外语", 110),
-    (11004, "品德", 110), (11005, "科学", 110), (11006, "体育与健康", 110),
+    (101, "School type", 0), (10101, "Primary school", 101), (10102, "Nine-year school", 101), (10103, "Junior high", 101),
+    (102, "School level", 0), (10201, "School", 102), (10202, "District", 102), (10203, "Municipal", 102),
+    (103, "Stage", 0), (10301, "Primary school", 103), (10302, "Junior high", 103), (10303, "Senior high", 103),
+    (105, "Education", 0), (10501, "College diploma", 105), (10502, "Bachelor", 105), (10503, "Master", 105),
+    (106, "Title", 0), (10601, "Professor level", 106), (10602, "Senior", 106), (10603, "First grade", 106), (10604, "Second grade", 106),
+    (107, "Position", 0), (10701, "Principal / Party secretary", 107), (10702, "Deputy secretary", 107),
+    (10703, "Vice Principal (Academic)", 107), (10704, "Vice Principal (Student Affairs)", 107), (10705, "Academic Director", 107), (10710, "Other", 107),
+    (108, "Semester", 0), (10801, "Semester 1", 108), (10802, "Semester 2", 108),
+    (109, "Exam", 0), (10901, "Final Exam", 109), (10902, "Midterm Exam", 109), (10903, "Unit Test", 109),
+    (110, "Subject", 0), (11001, "Chinese", 110), (11002, "Math", 110), (11003, "Foreign language", 110),
+    (11004, "Moral education", 110), (11005, "Science", 110), (11006, "PE & Health", 110),
 ]
 
 SUBJECTS = [
-    ("语文", "语文", "yuwen", 11001, 1),
-    ("数学", "数学", "shuxue", 11002, 1),
-    ("英语", "英语", "yingyu", 11003, 1),
-    ("科学", "科学", "kexue", 11005, 1),
-    ("道德与法治", "道法", "daofa", 11004, 1),
-    ("体育", "体育", "tiyu", 11006, 0),
-    ("音乐", "音乐", "yinyue", 11008, 0),
-    ("美术", "美术", "meishu", 11008, 0),
+    ("Chinese", "Chinese", "yuwen", 11001, 1),
+    ("Math", "Math", "shuxue", 11002, 1),
+    ("English", "English", "yingyu", 11003, 1),
+    ("Science", "Science", "kexue", 11005, 1),
+    ("Ethics & Law", "Ethics", "daofa", 11004, 1),
+    ("PE", "PE", "tiyu", 11006, 0),
+    ("Music", "Music", "yinyue", 11008, 0),
+    ("Art", "Art", "meishu", 11008, 0),
 ]
 
 SCHOOLS = [
-    ("长兴岛实验小学", "实验", 10101, 10301),
-    ("长兴岛第二小学", "二小", 10101, 10301),
+    ("Changxing Island Primary School", "Lab", 10101, 10301),
+    ("Changxing Island No.2 Primary School", "No.2", 10101, 10301),
 ]
 
-SURNAMES = "王李张刘陈杨黄赵吴周徐孙马朱胡郭何高林罗郑梁谢宋唐许韩冯邓曹彭曾"
-GIVEN1 = "伟芳娜秀敏静丽强磊洋艳勇军杰娟涛明超秀霞平刚桂英华文玉梅红萍"
-GIVEN2 = "明华文玉秀英梅兰芳丽娟婷洁强军伟磊洋勇涛鹏超波斌辉建国志远"
+SURNAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark", "Lewis", "Walker", "Hall", "Young", "King"]
+GIVEN1 = ["Emma", "Olivia", "Ava", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Liam", "Noah", "William", "James", "Benjamin", "Lucas", "Henry", "Alexander", "Mason", "Michael"]
+GIVEN2 = ["Grace", "Rose", "Jane", "Anne", "Claire", "Alice", "Lucy", "Emily", "Daniel", "Thomas", "Peter", "George", "Edward", "Charles", "Arthur", "Albert", "Henry", "Oliver", "Jack", "Leo"]
 
 MENU = [
-    ("基础数据", "", 1, [
-        ("单位管理", "/school", 2), ("学期管理", "/xueqi", 3),
-        ("班级管理", "/banji", 4), ("学科管理", "/subject", 5),
+    ("Basic data", "", 1, [
+        ("Schools", "/school", 2), ("Semesters", "/xueqi", 3),
+        ("Classes", "/banji", 4), ("Subjects", "/subject", 5),
     ]),
-    ("师生管理", "", 6, [
-        ("教师管理", "/teacher", 7), ("学生管理", "/student", 8),
+    ("People", "", 6, [
+        ("Teachers", "/teacher", 7), ("Students", "/student", 8),
     ]),
-    ("考试管理", "", 10, [
-        ("考试管理", "/kaoshi", 11), ("考号管理", "/kaohao", 12),
+    ("Exams", "", 10, [
+        ("Exams", "/kaoshi", 11), ("Exam numbers", "/kaohao", 12),
     ]),
-    ("教学管理", "", 15, [
-        ("课程管理", "/course", 16), ("选课管理", "/enrollment", 17),
-        ("考勤录入", "/attendance", 18),
+    ("Teaching", "", 15, [
+        ("Courses", "/course", 16), ("Enrolments", "/enrollment", 17),
+        ("Attendance", "/attendance", 18),
     ]),
-    ("成绩管理", "", 20, [
-        ("成绩录入", "/luru", 21), ("成绩查询", "/chengji", 22),
+    ("Grades", "", 20, [
+        ("Grade entry", "/luru", 21), ("GradeQuery", "/chengji", 22),
     ]),
-    ("统计分析", "", 30, [
-        ("班级统计", "/tongji/bj", 31), ("年级统计", "/tongji/nj", 32),
-        ("全校统计", "/tongji/sch", 33), ("学业预警", "/risk", 34),
+    ("Analytics", "", 30, [
+        ("Class statistics", "/tongji/bj", 31), ("Grade statistics", "/tongji/nj", 32),
+        ("School statistics", "/tongji/sch", 33), ("Academic risk", "/risk", 34),
     ]),
-    ("报表中心", "", 35, [
-        ("成绩报表", "/report", 36),
+    ("Reports", "", 35, [
+        ("Grade report", "/report", 36),
     ]),
-    ("系统设置", "", 40, [
-        ("用户管理", "/admin_user", 41), ("类别管理", "/category", 42),
+    ("Settings", "", 40, [
+        ("Users", "/admin_user", 41), ("Categories", "/category", 42),
     ]),
 ]
 
 
 def _name():
-    return random.choice(SURNAMES) + random.choice(GIVEN1) + random.choice(GIVEN2)
+    return f"{random.choice(GIVEN1)} {random.choice(SURNAMES)}"
 
 
 def reset(db):
@@ -122,7 +122,7 @@ def reset(db):
 def seed(db):
     # ---------------- 系统设置
     if not db.scalars(__import__("sqlalchemy").select(SystemBase)).first():
-        db.add(SystemBase(sys_title="学生管理系统", danwei="长兴岛实验小学"))
+        db.add(SystemBase(sys_title="Student Management System", danwei="Changxing Island Primary School"))
 
     # ---------------- 类别
     for cid, title, pid in CATEGORIES:
@@ -154,8 +154,8 @@ def seed(db):
     # ---------------- 学期
     xueqis = []
     for title, xn, bf, ef, cat in [
-        ("2024-2025学年度第一学期", "2024-2025", "2024-09-01", "2025-01-15", 10801),
-        ("2024-2025学年度第二学期", "2024-2025", "2025-02-17", "2025-07-10", 10802),
+        ("2024-2025 Academic Year · Semester 1", "2024-2025", "2024-09-01", "2025-01-15", 10801),
+        ("2024-2025 Academic Year · Semester 2", "2024-2025", "2025-02-17", "2025-07-10", 10802),
     ]:
         x = Xueqi(title=title, xuenian=xn, category_id=cat,
                   bfdate=str_to_ts(bf), enddate=str_to_ts(ef))
@@ -217,8 +217,8 @@ def seed(db):
 
     # ---------------- 管理员
     pwd = password_hash("123456")
-    admin = Admin(id=1, xingming="系统管理员", username="admin", password=pwd,
-                  school_id=schools["长兴岛实验小学"].id, status=1)
+    admin = Admin(id=1, xingming="System Administrator", username="admin", password=pwd,
+                  school_id=schools["Changxing Island Primary School"].id, status=1)
     db.add(admin)
     db.flush()
 
@@ -254,7 +254,7 @@ def seed(db):
             rule_ids.append(c.id)
     db.commit()
 
-    group = AuthGroup(id=1, title="超级管理员", rules=",".join(str(i) for i in rule_ids), status=1)
+    group = AuthGroup(id=1, title="Super administrator", rules=",".join(str(i) for i in rule_ids), status=1)
     db.add(group)
     db.commit()
     db.add(AuthGroupAccess(uid=1, group_id=1))
@@ -278,11 +278,11 @@ def seed(db):
     # ---------------- 考试
     exams = []
     for title, cat, bf, ef, xq in [
-        ("2024-2025第一学期期末考试", 10901, "2025-01-06", "2025-01-10", xueqis[0]),
-        ("2024-2025第二学期期中考试", 10902, "2025-04-14", "2025-04-18", xueqis[1]),
-        ("2024-2025第二学期期末考试", 10901, "2025-06-23", "2025-06-27", xueqis[1]),
+        ("2024-2025 Semester 1 Final Exam", 10901, "2025-01-06", "2025-01-10", xueqis[0]),
+        ("2024-2025 Semester 2 Midterm Exam", 10902, "2025-04-14", "2025-04-18", xueqis[1]),
+        ("2024-2025 Semester 2 Final Exam", 10901, "2025-06-23", "2025-06-27", xueqis[1]),
     ]:
-        k = Kaoshi(title=title, zuzhi_id=schools["长兴岛实验小学"].id, xueqi_id=xq.id,
+        k = Kaoshi(title=title, zuzhi_id=schools["Changxing Island Primary School"].id, xueqi_id=xq.id,
                    category_id=cat, user_id=1, bfdate=str_to_ts(bf), enddate=str_to_ts(ef),
                    luru=1, status=1)
         db.add(k)
@@ -324,7 +324,7 @@ def seed(db):
     for b in banjis:
         for sub in exam_subjects:
             c = Course(
-                title=f"{b.ruxuenian}级{b.paixu}班{sub.title}",
+                title=f"{sub.title} · Class {b.paixu} ({b.ruxuenian})",
                 xueqi_id=xueqis[0].id, banji_id=b.id, subject_id=sub.id,
                 teacher_id=fen_gong.get((b.id, sub.id), 0), keshi=32, status=1,
             )
@@ -373,11 +373,11 @@ def seed(db):
         tj_service.save_order(k.id)
         tj_service.biaozhunfen(k.id)
 
-    print("演示数据生成完成：")
-    print(f"  单位 {len(schools)}  学期 {len(xueqis)}  班级 {len(banjis)}  学生 {len(students)}")
-    print(f"  教师 {len(teachers)}  考试 {len(exams)}  学科 {len(subjects)}")
-    print(f"  课程 {len(courses)}  选课 {enrolled}  考勤 {att_rows}")
-    print(f"  已对 {len(exams)} 场考试执行三级统计、排名与标准分")
+    print("Demo data generated:")
+    print(f"  Schools {len(schools)}  Semesters {len(xueqis)}  Classes {len(banjis)}  Students {len(students)}")
+    print(f"  Teachers {len(teachers)}  Exams {len(exams)}  Subjects {len(subjects)}")
+    print(f"  Courses {len(courses)}  Enrolments {enrolled}  Attendance {att_rows}")
+    print(f"  Three-level statistics, ranks and Z-scores computed for {len(exams)} exams")
 
 
 

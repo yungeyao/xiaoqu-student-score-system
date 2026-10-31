@@ -1,4 +1,4 @@
-"""学生端：查看个人历次成绩。"""
+"""Student端: 查看个 studentsExam history。"""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -38,17 +38,17 @@ def student_home(request: Request, db: Session = Depends(get_db)):
             "student": user,
             "banji_name": banji.full_title if banji else "",
             "subjects": subjects,
-            "page": {"webtitle": "我的成绩"},
+            "page": {"webtitle": "My Results"},
         },
     )
 
 
 @router.post("/api/student/scores")
 async def student_scores(request: Request, db: Session = Depends(get_db)):
-    """本人历次成绩：一行一场考试，一列一个学科。"""
+    """本 studentsExam history: 一行一场Exam, 一列一个Subject。"""
     user, cat, redirect = require_student(request, db)
     if redirect:
-        return fail("未登录")
+        return fail("Not signed in")
 
     khs = db.scalars(
         select(Kaohao).where(Kaohao.student_id == user.id, Kaohao.delete_time.is_(None))
@@ -95,10 +95,10 @@ async def student_scores(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/student/chart")
 async def student_chart(request: Request, db: Session = Depends(get_db)):
-    """本人某一学科历次成绩的折线图数据。"""
+    """本 students某一SubjectExam history的折线图数据。"""
     user, cat, redirect = require_student(request, db)
     if redirect:
-        return fail("未登录")
+        return fail("Not signed in")
     form = await _form(request)
     sid = int_or(form, "subject_id")
 
@@ -119,4 +119,4 @@ async def student_chart(request: Request, db: Session = Depends(get_db)):
         seen[title] = float(defen)
     cats = list(seen.keys())
     vals = list(seen.values())
-    return ok("", {"categories": cats, "series": [{"name": "得分", "data": vals}]})
+    return ok("", {"categories": cats, "series": [{"name": "Score", "data": vals}]})

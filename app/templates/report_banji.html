@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>班级成绩报表 · {{ d.banji.full_title }} · {{ d.exam.title }}</title>
+  <title>Class grade report · {{ d.banji.full_title }} · {{ d.exam.title }}</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -18,10 +18,10 @@
     th { background: #f0f4fa; font-weight: 500; }
     tr:nth-child(even) td { background: #fbfbfb; }
     td.name { text-align: left; }
-    .lv-高风险 { color: #d93a49; font-weight: 600; }
-    .lv-中风险 { color: #e69138; }
-    .lv-关注 { color: #b58b00; }
-    .lv-正常 { color: #3d9a53; }
+    .lv-High { color: #d93a49; font-weight: 600; }
+    .lv-Medium { color: #e69138; }
+    .lv-Watch { color: #b58b00; }
+    .lv-Normal { color: #3d9a53; }
     .meta { display: flex; flex-wrap: wrap; gap: 8px 26px; font-size: 13px; color: #444; margin-bottom: 6px; }
     .meta b { font-weight: 500; color: #111; }
     .note { font-size: 12px; color: #888; margin-top: 8px; line-height: 1.8; }
@@ -43,32 +43,32 @@
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="window.print()">打印 / 另存 PDF</button>
-  <a class="ghost" href="/api/report/banji.xlsx?kaoshi_id={{ d.exam.id }}&banji_id={{ d.banji.id }}">导出 Excel</a>
-  <a class="ghost" href="/report?kaoshi_id={{ d.exam.id }}">返回报表中心</a>
+  <button onclick="window.print()">Print / Save as PDF</button>
+  <a class="ghost" href="/api/report/banji.xlsx?kaoshi_id={{ d.exam.id }}&banji_id={{ d.banji.id }}">Export Excel</a>
+  <a class="ghost" href="/report?kaoshi_id={{ d.exam.id }}">Back to reports</a>
 </div>
 
 <div class="sheet">
-  <h1>{{ d.banji.full_title }} · {{ d.exam.title }} 成绩报表</h1>
+  <h1>{{ d.banji.full_title }} · {{ d.exam.title }} Grade report</h1>
   {% if d.school_title %}
   <div class="sub">{{ d.school_title }}</div>
   {% endif %}
 
   <div class="meta">
-    <span>考试：<b>{{ d.exam.title }}</b></span>
-    <span>考试日期：<b>{{ d.exam_date }}</b></span>
-    <span>班级：<b>{{ d.banji.full_title }}</b></span>
-    <span>学生数：<b>{{ d.students|length }}</b>（缺考学生 <b>{{ d.absent_total }}</b> 人）</span>
-    <span>总分均分：<b>{{ d.total_avg if d.total_avg is not none else '-' }}</b></span>
-    <span>制表时间：<b>{{ d.now_text }}</b></span>
+    <span>Exam: <b>{{ d.exam.title }}</b></span>
+    <span>Exam date: <b>{{ d.exam_date }}</b></span>
+    <span>Class: <b>{{ d.banji.full_title }}</b></span>
+    <span>Students: <b>{{ d.students|length }}</b> (absent: <b>{{ d.absent_total }}</b>)</span>
+    <span>Average total: <b>{{ d.total_avg if d.total_avg is not none else '-' }}</b></span>
+    <span>Generated at: <b>{{ d.now_text }}</b></span>
   </div>
 
-  <h2>一、学科统计</h2>
+  <h2>I. Subject statistics</h2>
   <table>
     <thead>
     <tr>
-      <th>学科</th><th>应考</th><th>实考</th><th>平均分</th><th>得分率(%)</th>
-      <th>标准差</th><th>最高</th><th>最低</th><th>优秀率(%)</th><th>及格率(%)</th><th>参试率(%)</th>
+      <th>Subject</th><th>Expected</th><th>Taken</th><th>Average</th><th>Score rate (%)</th>
+      <th>Std Dev</th><th>Max</th><th>Min</th><th>Excellent (%)</th><th>Pass (%)</th><th>Participation (%)</th>
     </tr>
     </thead>
     <tbody>
@@ -88,13 +88,13 @@
     </tbody>
   </table>
 
-  <h2>二、学生成绩明细</h2>
+  <h2>II. Student results</h2>
   <table>
     <thead>
     <tr>
-      <th style="width:52px;">排名</th><th style="width:80px;">姓名</th>
+      <th style="width:52px;">Rank</th><th style="width:80px;">Name</th>
       {% for s in d.subjects %}<th>{{ s.title }}</th>{% endfor %}
-      <th style="width:70px;">总分</th><th style="width:76px;">预警</th>
+      <th style="width:70px;">Total</th><th style="width:76px;">Risk</th>
     </tr>
     </thead>
     <tbody>
@@ -103,25 +103,25 @@
       <td>{{ r.rank if r.rank else '-' }}</td>
       <td class="name">{{ r.xingming }}</td>
       {% for c in r.cells %}
-      <td>{{ c.defen if c.defen is not none else '缺考' }}</td>
+      <td>{{ c.defen if c.defen is not none else 'Absent' }}</td>
       {% endfor %}
-      <td>{{ r.total if r.total is not none else '缺考' }}</td>
+      <td>{{ r.total if r.total is not none else 'Absent' }}</td>
       <td class="lv-{{ r.risk_level }}">{{ r.risk_level }}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
 
-  <h2>三、预警名单</h2>
+  <h2>III. At-risk students</h2>
   <table>
     <thead><tr>
-      <th style="width:70px;">等级</th><th style="width:110px;">姓名</th>
-      <th style="width:70px;">总分</th><th>预警原因</th>
+      <th style="width:70px;">Level</th><th style="width:110px;">Name</th>
+      <th style="width:70px;">Total</th><th>Reason</th>
     </tr></thead>
     <tbody>
     {% set ns = namespace(n=0) %}
     {% for r in d.students %}
-    {% if r.risk_level != '正常' %}
+    {% if r.risk_level != 'Normal' %}
     {% set ns.n = ns.n + 1 %}
     <tr>
       <td class="lv-{{ r.risk_level }}">{{ r.risk_level }}</td>
@@ -132,14 +132,14 @@
     {% endif %}
     {% endfor %}
     {% if ns.n == 0 %}
-    <tr><td colspan="4">本班暂无预警学生</td></tr>
+    <tr><td colspan="4">No at-risk students in this class</td></tr>
     {% endif %}
     </tbody>
   </table>
 
   <div class="note">
-    说明：缺考按「空」记录并计入应考人数，各项比率的分母为实考人数；
-    预警等级由不及格科目数、缺考科目数、总分与班级均分差距、到课率四项规则综合判定。
+    Note: absences are stored as NULL and counted as expected; all rates use the number of students who took the exam as denominator.
+    Risk levels combine failed subjects, absences, the gap to the class average and attendance.
   </div>
 </div>
 </body>

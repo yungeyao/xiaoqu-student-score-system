@@ -24,21 +24,21 @@ from sqlalchemy import select
 
 from ..models import ATTENDANCE_PRESENT, Attendance, Banji, Chengji, Kaohao, KaoshiSet, Student
 
-LEVELS = ["高风险", "中风险", "关注", "正常"]
+LEVELS = ["High", "Medium", "Watch", "Normal"]
 
 
 def _level_of(score: int) -> str:
     if score >= 5:
-        return "高风险"
+        return "High"
     if score >= 3:
-        return "中风险"
+        return "Medium"
     if score >= 1:
-        return "关注"
-    return "正常"
+        return "Watch"
+    return "Normal"
 
 
 def _lines(db, kaoshi_id: int) -> dict[tuple[int, int], float]:
-    """{（入学年, 学科): 及格线}"""
+    """{ (Cohort, Subject): Pass line}"""
     rows = db.execute(
         select(KaoshiSet.ruxuenian, KaoshiSet.subject_id, KaoshiSet.jige).where(
             KaoshiSet.kaoshi_id == kaoshi_id, KaoshiSet.delete_time.is_(None)
@@ -48,7 +48,7 @@ def _lines(db, kaoshi_id: int) -> dict[tuple[int, int], float]:
 
 
 def _attendance_rate(db, student_ids: list[int]) -> dict[int, Optional[float]]:
-    """每个学生的到课率（出勤/迟到/请假都算到课），没有考勤记录返回 None。"""
+    """每个Student的Attendance (出勤/Late/Leave都算到课), 没有Attendance记录返回 None。"""
     if not student_ids:
         return {}
     total: dict[int, int] = defaultdict(int)
@@ -74,7 +74,7 @@ def evaluate(
     banji_ids: Optional[list[int]] = None,
     include_attendance: bool = True,
 ) -> list[dict]:
-    """返回范围内每个学生的预警明细，按风险分降序、平均分升序。"""
+    """返回范围内每个Student的预警明细, 按Risk score降序, Average升序。"""
     stmt = select(Student).where(Student.delete_time.is_(None), Student.status == 1)
     if banji_ids is not None:
         stmt = stmt.where(Student.banji_id.in_(banji_ids or [0]))
@@ -142,22 +142,22 @@ def evaluate(
                 fail += 1
         if fail >= 3:
             score += 3
-            reasons.append(f"{fail} 科不及格")
+            reasons.append(f"{fail} subjects failed")
         elif fail == 2:
             score += 2
-            reasons.append("2 科不及格")
+            reasons.append("2 subjects failed")
         elif fail == 1:
             score += 1
-            reasons.append("1 科不及格")
+            reasons.append("1 subject failed")
 
         # 规则 2：缺考
         absent = sum(1 for v in by_subject.values() if v is None)
         if absent >= 2:
             score += 2
-            reasons.append(f"缺考 {absent} 科")
+            reasons.append(f"{absent} subjects missed")
         elif absent == 1:
             score += 1
-            reasons.append("缺考 1 科")
+            reasons.append("1 subject missed")
 
         # 规则 3：总分与班级均分的差距
         total = totals.get(sid)
@@ -167,20 +167,20 @@ def evaluate(
             gap = round(total - cavg, 1)
             if gap <= -40:
                 score += 2
-                reasons.append(f"总分低于班级均分 {abs(gap)}")
+                reasons.append(f"Total {abs(gap)} below class average")
             elif gap <= -20:
                 score += 1
-                reasons.append(f"总分低于班级均分 {abs(gap)}")
+                reasons.append(f"Total {abs(gap)} below class average")
 
         # 规则 4：到课率
         rate = att.get(sid)
         if rate is not None:
             if rate < 80:
                 score += 2
-                reasons.append(f"到课率仅 {rate}%")
+                reasons.append(f"Attendance only {rate}%")
             elif rate < 90:
                 score += 1
-                reasons.append(f"到课率 {rate}%")
+                reasons.append(f"Attendance {rate}%")
 
         out.append(
             {
@@ -205,11 +205,11 @@ def evaluate(
 
 
 def summary(rows: list[dict]) -> dict:
-    """按等级统计人数，供图表与报表复用。"""
+    """按Level统计 students数, 供图表与报表复用。"""
     counts = {lv: 0 for lv in LEVELS}
     for r in rows:
         counts[r["risk_level"]] = counts.get(r["risk_level"], 0) + 1
-    at_risk = counts["高风险"] + counts["中风险"]
+    at_risk = counts["High"] + counts["Medium"]
     total = len(rows)
     return {
         "total": total,

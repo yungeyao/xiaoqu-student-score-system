@@ -1,4 +1,4 @@
-"""统计分析：执行统计、三级统计表、图表数据。"""
+"""Analytics: Recalculate, 三级统计表, 图表数据。"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
@@ -56,7 +56,7 @@ def bj_page(request: Request, db: Session = Depends(get_db)):
     user, cat, redirect = require_admin(request, db)
     if redirect:
         return redirect
-    return _page(request, db, "bj", "班级成绩统计")
+    return _page(request, db, "bj", "Class statistics")
 
 
 @router.get("/tongji/nj")
@@ -64,7 +64,7 @@ def nj_page(request: Request, db: Session = Depends(get_db)):
     user, cat, redirect = require_admin(request, db)
     if redirect:
         return redirect
-    return _page(request, db, "nj", "年级成绩统计")
+    return _page(request, db, "nj", "Grade statistics")
 
 
 @router.get("/tongji/sch")
@@ -72,7 +72,7 @@ def sch_page(request: Request, db: Session = Depends(get_db)):
     user, cat, redirect = require_admin(request, db)
     if redirect:
         return redirect
-    return _page(request, db, "sch", "全校成绩统计")
+    return _page(request, db, "sch", "School statistics")
 
 
 # ================================================================== 执行统计
@@ -83,39 +83,39 @@ async def run(request: Request, db: Session = Depends(get_db)):
     """重算三级统计。"""
     user, cat, redirect = require_admin(request, db)
     if redirect:
-        return fail("未登录")
+        return fail("Not signed in")
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     if not kid:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     res = tj_service.tongji(kid)
     return ok(
-        f"统计完成：班级 {res['bj']} 条、年级 {res['nj']} 条、全校 {res['sch']} 条", res
+        f"Statistics updated: {res['bj']} class rows, {res['nj']} grade rows, {res['sch']} school rows", res
     )
 
 
 @router.post("/api/tongji/order")
 async def order(request: Request, db: Session = Depends(get_db)):
-    """计算排名与位置百分位。"""
+    """Compute ranks与位置百分位。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     if not kid:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     n = tj_service.save_order(kid)
-    return ok(f"已更新 {n} 条成绩的排名", {"count": n})
+    return ok(f"Updated ranks for {n} grade rows", {"count": n})
 
 
 @router.post("/api/tongji/biaozhunfen")
 async def biaozhunfen(request: Request, db: Session = Depends(get_db)):
-    """计算标准分（依赖全校统计已执行）。"""
+    """Compute Z-scores (依赖School statistics已执行)。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     if not kid:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     n = tj_service.biaozhunfen(kid)
     if n == 0:
-        return fail("请先执行全校统计")
-    return ok(f"已计算 {n} 条标准分", {"count": n})
+        return fail("Run school-level statistics first")
+    return ok(f"Computed Z-scores for {n} rows", {"count": n})
 
 
 # ================================================================== 统计表数据
@@ -163,7 +163,7 @@ def _f(v):
 
 
 def _scope(request, db):
-    """当前登录者的数据范围；未登录返回空范围。"""
+    """当前登录者的数据范围; Not signed in返回空范围。"""
     from ..services.permission import data_scope
 
     user, _cat, _r = require_admin(request, db)
@@ -200,7 +200,7 @@ async def nj_list(request: Request, db: Session = Depends(get_db)):
     if not sc["all"]:
         keys = {tuple(k) for k in sc["nj_keys"]}
         rows = [r for r in rows if (r.school_id, r.ruxuenian) in keys]
-    data = [_dump(r, f"{sch.get(r.school_id, '')} {r.ruxuenian}级") for r in rows]
+    data = [_dump(r, f"{sch.get(r.school_id, '')} Grade {r.ruxuenian}") for r in rows]
     data.sort(key=lambda x: (x["avg"] is None, -(x["avg"] or 0)))
     return table(len(data), data)
 
@@ -217,7 +217,7 @@ async def sch_list(request: Request, db: Session = Depends(get_db)):
     if not sc["all"]:
         rs = set(sc["ruxuenians"])
         rows = [r for r in rows if r.ruxuenian in rs]
-    data = [_dump(r, f"{r.ruxuenian}级") for r in rows]
+    data = [_dump(r, f"Grade {r.ruxuenian}") for r in rows]
     data.sort(key=lambda x: (x["avg"] is None, -(x["avg"] or 0)))
     return table(len(data), data)
 
@@ -227,7 +227,7 @@ async def sch_list(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/tongji/chart")
 async def chart(request: Request, db: Session = Depends(get_db)):
-    """图表数据。type=avg 平均分对比；type=rate 优秀/及格率；type=score 分数段人数。"""
+    """图表数据。type=avg Average by class; type=rate 优秀/Pass rate; type=score 分数段 students数。"""
     from ..models import Chengji, Kaohao
 
     form = await _form(request)
@@ -251,25 +251,25 @@ async def chart(request: Request, db: Session = Depends(get_db)):
         if level == "bj":
             cats.append(bj.get(r.banji_id, ""))
         elif level == "nj":
-            cats.append(f"{sch.get(r.school_id, '')}{r.ruxuenian}级")
+            cats.append(f"{sch.get(r.school_id, '')} Grade {r.ruxuenian}")
         else:
-            cats.append(f"{r.ruxuenian}级")
+            cats.append(f"Grade {r.ruxuenian}")
         avgs.append(_f(r.avg))
         youxiu.append(_f(r.youxiulv))
         jige.append(_f(r.jigelv))
 
     if ctype == "rate":
         series = [
-            {"name": "优秀率", "data": youxiu},
-            {"name": "及格率", "data": jige},
+            {"name": "Excellent rate", "data": youxiu},
+            {"name": "Pass rate", "data": jige},
         ]
     else:
-        series = [{"name": "平均分", "data": avgs}]
+        series = [{"name": "Average", "data": avgs}]
     return ok("", {"categories": cats, "series": series})
 
 
 def _score_segment(db, kid, subject_id):
-    """分数段人数分布：按 10 分一段统计。"""
+    """Score distribution: 按 10 分一段统计。"""
     from ..models import Chengji, Kaohao
 
     rows = db.execute(
@@ -283,4 +283,4 @@ def _score_segment(db, kid, subject_id):
     for v in values:
         idx = min(int(v // 10), 9)
         buckets[idx] += 1
-    return ok("", {"categories": labels, "series": [{"name": "人数", "data": buckets}]})
+    return ok("", {"categories": labels, "series": [{"name": "Students", "data": buckets}]})

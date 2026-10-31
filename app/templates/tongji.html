@@ -19,8 +19,8 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
@@ -28,37 +28,37 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">考试</label>
+          <label class="layui-form-label" style="width:60px;">Exam</label>
           <div class="layui-input-inline" style="width:190px;">
             <select name="kaoshi_id" id="kaoshi_id">
-              <option value="">请选择</option>
+              <option value="">Select</option>
               {% for e in exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:60px;">学科</label>
+          <label class="layui-form-label" style="width:60px;">Subject</label>
           <div class="layui-input-inline" style="width:130px;">
             <select name="subject_id" id="subject_id">
-              <option value="">全部</option>
+              <option value="">All</option>
               {% for s in subjects %}<option value="{{ s.id }}">{{ s.title }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">查看统计</button>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">View statistics</button>
           <button type="button" class="layui-btn layui-btn-danger" id="btnRun">
-            <i class="layui-icon">&#xe9c9;</i>执行统计</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnOrder">计算排名</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnZ">计算标准分</button>
+            <i class="layui-icon">&#xe9c9;</i>Recalculate</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnOrder">Compute ranks</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnZ">Compute Z-scores</button>
         </div>
       </div>
     </form>
   </div>
 
   <div id="grid" style="margin-top:10px;">
-    <div class="empty">请选择考试后点「查看统计」<br><br>
-      <span style="font-size:12px;">成绩录入或改动后需要点「执行统计」重新计算</span></div>
+    <div class="empty">Select an exam, then click View Statistics<br><br>
+      <span style="font-size:12px;">Recalculate after grades are changed</span></div>
   </div>
 
   <div class="layui-row layui-col-space10" style="margin-top:10px;">
@@ -82,15 +82,15 @@ layui.use(['form', 'layer'], function () {
 
   function loadTable() {
     var p = current();
-    if (!p.kaoshi_id) { layer.msg('请选择考试'); return; }
+    if (!p.kaoshi_id) { layer.msg('Select an exam'); return; }
     $.post('/api/tongji/' + LEVEL + '_list', p, function (res) {
-      if (!res.data || !res.data.length) { $('#grid').html('<div class="empty">暂无统计数据，请先点「执行统计」</div>'); return; }
+      if (!res.data || !res.data.length) { $('#grid').html('<div class="empty">No statistics yet — run Recalculate first</div>'); return; }
       var cols = [
-        ['name', '名称', 130], ['stu_cnt', '应考', 70], ['chengji_cnt', '实考', 70],
-        ['avg', '平均分', 80], ['defenlv', '得分率', 80], ['biaozhuncha', '标准差', 80],
-        ['max', '最高', 70], ['min', '最低', 70], ['youxiu', '优秀数', 80], ['youxiulv', '优秀率', 80],
-        ['jige', '及格数', 80], ['jigelv', '及格率', 80], ['canshilv', '参试率', 80],
-        ['q1', 'Q1', 70], ['q2', 'Q2', 70], ['q3', 'Q3', 70], ['zhongweishu', '中位数', 80]
+        ['name', 'Name', 130], ['stu_cnt', 'Expected', 70], ['chengji_cnt', 'Taken', 70],
+        ['avg', 'Average', 80], ['defenlv', 'Score rate', 80], ['biaozhuncha', 'Std Dev', 80],
+        ['max', 'Max', 70], ['min', 'Min', 70], ['youxiu', 'Excellent', 80], ['youxiulv', 'Excellent rate', 80],
+        ['jige', 'Pass', 80], ['jigelv', 'Pass rate', 80], ['canshilv', 'Participation', 80],
+        ['q1', 'Q1', 70], ['q2', 'Q2', 70], ['q3', 'Q3', 70], ['zhongweishu', 'Median', 80]
       ];
       var html = '<table class="layui-table"><thead><tr>';
       $.each(cols, function (i, c) { html += '<th>' + c[1] + '</th>'; });
@@ -114,7 +114,7 @@ layui.use(['form', 'layer'], function () {
     $.post('/api/tongji/chart', $.extend({ type: 'avg' }, p), function (res) {
       if (res.val != 1) return;
       cAvg.setOption({
-        title: { text: '平均分对比', textStyle: { fontSize: 13 } },
+        title: { text: 'Average by class', textStyle: { fontSize: 13 } },
         tooltip: {}, grid: { left: 50, right: 20, top: 40, bottom: 60 },
         xAxis: { type: 'category', data: res.data.categories, axisLabel: { rotate: 30, fontSize: 10 } },
         yAxis: { type: 'value' },
@@ -125,14 +125,14 @@ layui.use(['form', 'layer'], function () {
     $.post('/api/tongji/chart', $.extend({ type: 'rate' }, p), function (res) {
       if (res.val != 1) return;
       cRate.setOption({
-        title: { text: '优秀率 / 及格率', textStyle: { fontSize: 13 } },
+        title: { text: 'Excellent / pass rate', textStyle: { fontSize: 13 } },
         tooltip: {}, legend: { top: 25, textStyle: { fontSize: 11 } },
         grid: { left: 50, right: 20, top: 60, bottom: 60 },
         xAxis: { type: 'category', data: res.data.categories, axisLabel: { rotate: 30, fontSize: 10 } },
         yAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
         series: [
-          { name: '优秀率', type: 'bar', data: res.data.series[0] ? res.data.series[0].data : [] },
-          { name: '及格率', type: 'bar', data: res.data.series[1] ? res.data.series[1].data : [] }
+          { name: 'Excellent rate', type: 'bar', data: res.data.series[0] ? res.data.series[0].data : [] },
+          { name: 'Pass rate', type: 'bar', data: res.data.series[1] ? res.data.series[1].data : [] }
         ]
       });
     }, 'json');
@@ -141,7 +141,7 @@ layui.use(['form', 'layer'], function () {
       $.post('/api/tongji/chart', $.extend({ type: 'score' }, p), function (res) {
         if (res.val != 1) return;
         cSeg.setOption({
-          title: { text: '分数段人数分布', textStyle: { fontSize: 13 } },
+          title: { text: 'Score distribution', textStyle: { fontSize: 13 } },
           tooltip: {}, grid: { left: 50, right: 20, top: 40, bottom: 40 },
           xAxis: { type: 'category', data: res.data.categories },
           yAxis: { type: 'value' },
@@ -153,19 +153,19 @@ layui.use(['form', 'layer'], function () {
 
   $('#btnLoad').on('click', function () { loadTable(); loadCharts(); });
   $('#btnRun').on('click', function () {
-    if (!$('#kaoshi_id').val()) { layer.msg('请选择考试'); return; }
-    layer.confirm('将重新计算该场考试的班级/年级/全校三级统计，确定继续？', function () {
+    if (!$('#kaoshi_id').val()) { layer.msg('Select an exam'); return; }
+    layer.confirm('Recalculate class, grade and school statistics for this exam. Continue?', function () {
       $.post('/api/tongji/run', { kaoshi_id: $('#kaoshi_id').val() }, function (res) {
         layer.msg(res.msg); loadTable(); loadCharts();
       }, 'json');
     });
   });
   $('#btnOrder').on('click', function () {
-    if (!$('#kaoshi_id').val()) { layer.msg('请选择考试'); return; }
+    if (!$('#kaoshi_id').val()) { layer.msg('Select an exam'); return; }
     $.post('/api/tongji/order', { kaoshi_id: $('#kaoshi_id').val() }, function (res) { layer.msg(res.msg); }, 'json');
   });
   $('#btnZ').on('click', function () {
-    if (!$('#kaoshi_id').val()) { layer.msg('请选择考试'); return; }
+    if (!$('#kaoshi_id').val()) { layer.msg('Select an exam'); return; }
     $.post('/api/tongji/biaozhunfen', { kaoshi_id: $('#kaoshi_id').val() }, function (res) { layer.msg(res.msg); }, 'json');
   });
 

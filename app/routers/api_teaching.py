@@ -35,7 +35,7 @@ async def _form(request: Request) -> dict:
 
 
 def _scope_banji_ids(request, db) -> list[int] | None:
-    """当前用户的班级范围；None 表示不限。"""
+    """当前用户的Class范围; None 表示不限。"""
     from ..services.permission import data_scope
 
     user, _cat, _r = require_admin(request, db)
@@ -72,7 +72,7 @@ def _allowed(course: Course | None, banji_ids: list[int] | None) -> bool:
 
 
 def _students_of_course(db, course: Course) -> list[Student]:
-    """课程名单：优先取选课记录，没选课的课程退回班级学生。"""
+    """Course名单: 优先取Enrolment记录, 没Enrolment的Course退回ClassStudent。"""
     ids = db.scalars(
         select(Enrollment.student_id).where(
             Enrollment.course_id == course.id,
@@ -99,7 +99,7 @@ def attendance_page(request: Request, course_id: int = 0, db: Session = Depends(
     from ..main import templates
 
     page = {
-        "webtitle": "考勤录入",
+        "webtitle": "Attendance",
         "courses": _course_options(db, _scope_banji_ids(request, db)),
         "today": date.today().isoformat(),
         "preselect": course_id,
@@ -115,7 +115,7 @@ async def attendance_students(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     course = db.get(Course, int_or(form, "course_id", 0))
     if not _allowed(course, _scope_banji_ids(request, db)):
-        return fail("课程不存在或无权访问")
+        return fail("Course not found or not accessible")
     riqi = str_to_ts(form.get("riqi")) or str_to_ts(date.today().isoformat())
 
     students = _students_of_course(db, course)
@@ -147,16 +147,16 @@ async def attendance_save(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     course = db.get(Course, int_or(form, "course_id", 0))
     if not _allowed(course, _scope_banji_ids(request, db)):
-        return fail("课程不存在或无权访问")
+        return fail("Course not found or not accessible")
     riqi = str_to_ts(form.get("riqi"))
     if not riqi:
-        return fail("请选择日期")
+        return fail("Select a date")
     try:
         rows = json.loads(form.get("rows") or "[]")
     except json.JSONDecodeError:
-        return fail("提交的数据格式不正确")
+        return fail("Malformed request data")
     if not rows:
-        return fail("没有要保存的记录")
+        return fail("No records to save")
 
     existing = {
         a.student_id: a
@@ -183,17 +183,17 @@ async def attendance_save(request: Request, db: Session = Depends(get_db)):
             a.update_time = now_ts()
             updated += 1
     db.commit()
-    return ok(f"已保存 {len(rows)} 人：新增 {created}，更新 {updated}",
+    return ok(f"Saved {len(rows)} students: {created} created, {updated} updated",
               {"created": created, "updated": updated})
 
 
 @router.post("/api/attendance/stats")
 async def attendance_stats(request: Request, db: Session = Depends(get_db)):
-    """某门课的考勤汇总：按日期出勤构成 + 每个学生的到课率。"""
+    """某门课的Attendance汇总: Attendance by date构成 + 每个Student的Attendance。"""
     form = await _form(request)
     course = db.get(Course, int_or(form, "course_id", 0))
     if not _allowed(course, _scope_banji_ids(request, db)):
-        return fail("课程不存在或无权访问")
+        return fail("Course not found or not accessible")
 
     records = db.scalars(
         select(Attendance).where(
@@ -249,7 +249,7 @@ def enrollment_batch_page(request: Request, course_id: int = 0, db: Session = De
     from ..main import templates
 
     page = {
-        "webtitle": "批量选课",
+        "webtitle": "Bulk enrolment",
         "courses": _course_options(db, _scope_banji_ids(request, db)),
         "preselect": course_id,
     }
@@ -263,7 +263,7 @@ async def enrollment_students(request: Request, db: Session = Depends(get_db)):
     form = await _form(request)
     course = db.get(Course, int_or(form, "course_id", 0))
     if not _allowed(course, _scope_banji_ids(request, db)):
-        return fail("课程不存在或无权访问")
+        return fail("Course not found or not accessible")
 
     enrolled = set(
         db.scalars(
@@ -287,15 +287,15 @@ async def enrollment_students(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/enrollment/batch")
 async def enrollment_batch_save(request: Request, db: Session = Depends(get_db)):
-    """按提交的勾选结果对齐选课记录：新增勾选的，移除取消勾选的。"""
+    """按提交的勾选结果对齐Enrolment记录: New勾选的, 移除取消勾选的。"""
     form = await _form(request)
     course = db.get(Course, int_or(form, "course_id", 0))
     if not _allowed(course, _scope_banji_ids(request, db)):
-        return fail("课程不存在或无权访问")
+        return fail("Course not found or not accessible")
     try:
         wanted = {int(x) for x in json.loads(form.get("student_ids") or "[]")}
     except (json.JSONDecodeError, TypeError, ValueError):
-        return fail("提交的数据格式不正确")
+        return fail("Malformed request data")
 
     current = {
         e.student_id: e
@@ -321,5 +321,5 @@ async def enrollment_batch_save(request: Request, db: Session = Depends(get_db))
             e.update_time = now_ts()
             removed += 1
     db.commit()
-    return ok(f"选课已更新：新增 {added}，移除 {removed}",
+    return ok(f"Enrolment updated: {added} added, {removed} removed",
               {"added": added, "removed": removed, "total": len(wanted)})

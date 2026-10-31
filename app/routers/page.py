@@ -85,12 +85,12 @@ def password_edit(request: Request, db: Session = Depends(get_db)):
     from ..main import templates
 
     page = {
-        "webtitle": "修改密码",
+        "webtitle": "Change password",
         "url": "/api/changepassword",
         "formpost": "POST",
         "fields": [
-            {"name": "old_password", "label": "原密码", "type": "password", "required": True},
-            {"name": "new_password", "label": "新密码", "type": "password", "required": True},
+            {"name": "old_password", "label": "Current password", "type": "password", "required": True},
+            {"name": "new_password", "label": "New password", "type": "password", "required": True},
         ],
         "obj": {},
     }

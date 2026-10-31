@@ -18,7 +18,7 @@
   <div class="x-nav">
     {% block nav %}{% endblock %}
     <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"
-       onclick="location.reload()" title="刷新">
+       onclick="location.reload()" title="Refresh">
       <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
     </a>
   </div>
@@ -26,7 +26,7 @@
     <div class="layui-row layui-col-space15">
       <div class="layui-collapse" lay-filter="test">
         <div class="layui-colla-item">
-          <h2 class="layui-colla-title">条件筛选<i class="layui-icon layui-colla-icon">&#xe61a;</i></h2>
+          <h2 class="layui-colla-title">Filters<i class="layui-icon layui-colla-icon">&#xe61a;</i></h2>
           <div class="layui-colla-content" id="srcmianban">
             <form class="layui-form layui-form-pane" id="search" lay-filter="search">
               {% block search %}{% endblock %}
@@ -45,7 +45,7 @@
 <script type="text/html" id="statusTpl">
   <input type="checkbox" myurl="{{ page.status_url or '' }}"
   {{ '{{' }} d.status == 1 ? "checked" : "" {{ '}}' }} id="{{ '{{' }} d.id {{ '}}' }}"
-  lay-skin="switch" lay-filter="status" lay-text="启用|禁用">
+  lay-skin="switch" lay-filter="status" lay-text="Enabled|Disabled">
 </script>
 
 <script type="text/javascript">

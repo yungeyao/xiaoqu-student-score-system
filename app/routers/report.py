@@ -64,7 +64,7 @@ def _subjects(db):
 
 
 def class_report(db, kid: int, banji_id: int) -> dict | None:
-    """装配一个班的成绩报表数据。"""
+    """装配一个班的Grade report数据。"""
     exam = _exam(db, kid)
     banji = db.get(Banji, banji_id)
     if exam is None or banji is None or banji.delete_time is not None:
@@ -158,8 +158,8 @@ def class_report(db, kid: int, banji_id: int) -> dict | None:
     risk_by_student = {r["student_id"]: r for r in risk_rows}
     for r in rows_out:
         rr = risk_by_student.get(r["student_id"])
-        r["risk_level"] = rr["risk_level"] if rr else "正常"
-        r["risk_reasons"] = "；".join(rr["reasons"]) if rr else ""
+        r["risk_level"] = rr["risk_level"] if rr else "Normal"
+        r["risk_reasons"] = "; ".join(rr["reasons"]) if rr else ""
 
     summary = risk_service.summary(risk_rows)
     total_avg = (
@@ -235,8 +235,8 @@ def student_report(db, kid: int, student_id: int) -> dict | None:
         "kaohao": kh.kaohao if kh else "",
         "cells": cells,
         "total": total,
-        "risk_level": rr["risk_level"] if rr else "正常",
-        "risk_reasons": "；".join(rr["reasons"]) if rr else "",
+        "risk_level": rr["risk_level"] if rr else "Normal",
+        "risk_reasons": "; ".join(rr["reasons"]) if rr else "",
     }
 
 
@@ -252,7 +252,7 @@ def report_page(request: Request, kaoshi_id: int = 0, db: Session = Depends(get_
 
     scope = data_scope(db, user)
     page = {
-        "webtitle": "成绩报表",
+        "webtitle": "Grade report",
         "exams": _exam_options(db),
         "banjis": _banji_options(db, scope),
         "preselect": kaoshi_id,
@@ -268,10 +268,10 @@ def report_banji(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
         return redirect
     scope = data_scope(db, user)
     if not scope["all"] and banji_id and banji_id not in scope["banji_ids"]:
-        return fail("无权查看该班级")
+        return fail("You cannot view this class")
     data = class_report(db, kaoshi_id, banji_id)
     if data is None:
-        return fail("考试或班级不存在")
+        return fail("Exam or class not found")
     from ..main import templates
 
     return templates.TemplateResponse(
@@ -287,10 +287,10 @@ def report_student(request: Request, kaoshi_id: int = 0, student_id: int = 0,
         return redirect
     data = student_report(db, kaoshi_id, student_id)
     if data is None:
-        return fail("考试或学生不存在")
+        return fail("Exam or student not found")
     scope = data_scope(db, user)
     if not scope["all"] and data["student"].banji_id not in scope["banji_ids"]:
-        return fail("无权查看该学生")
+        return fail("You cannot view this student")
     from ..main import templates
 
     return templates.TemplateResponse(
@@ -315,7 +315,7 @@ def _style_sheet(ws, widths: dict[int, int] | None = None):
 
 def _write_class_sheet(ws, data: dict):
     subjects = data["subjects"]
-    head = ["排名", "姓名", "学号/身份证"] + [s.title for s in subjects] + ["总分", "预警"]
+    head = ["Rank", "Name", "ID number"] + [s.title for s in subjects] + ["Total", "Risk"]
     ws.append(head)
     for r in data["students"]:
         ws.append(
@@ -341,16 +341,16 @@ def report_banji_xlsx(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
         return redirect
     data = class_report(db, kaoshi_id, banji_id)
     if data is None:
-        return fail("考试或班级不存在")
+        return fail("Exam or class not found")
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "成绩明细"
+    ws.title = "Results"
     _write_class_sheet(ws, data)
 
-    ws2 = wb.create_sheet("学科统计")
-    ws2.append(["学科", "应考", "实考", "平均分", "得分率", "标准差", "最高", "最低",
-                "优秀率", "及格率", "参试率"])
+    ws2 = wb.create_sheet("Subject statistics")
+    ws2.append(["Subject", "Expected", "Taken", "Average", "Score rate", "Std Dev", "Max", "Min",
+                "Excellent rate", "Pass rate", "Participation"])
     for sub, t in zip(data["subjects"], data["subject_list"]):
         if t is None:
             ws2.append([sub.title, None, None, None, None, None, None, None, None, None, None])
@@ -368,10 +368,10 @@ def report_banji_xlsx(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
         ])
     _style_sheet(ws2)
 
-    ws3 = wb.create_sheet("预警名单")
-    ws3.append(["姓名", "等级", "预警原因"])
+    ws3 = wb.create_sheet("At-risk students")
+    ws3.append(["Name", "Level", "Reason"])
     for r in data["students"]:
-        if r["risk_level"] != "正常":
+        if r["risk_level"] != "Normal":
             ws3.append([r["xingming"], r["risk_level"], r["risk_reasons"]])
     _style_sheet(ws3)
 
@@ -388,7 +388,7 @@ def report_banji_xlsx(request: Request, kaoshi_id: int = 0, banji_id: int = 0,
 
 @router.get("/api/report/all.xlsx")
 def report_all_xlsx(request: Request, kaoshi_id: int = 0, db: Session = Depends(get_db)):
-    """一场考试、所有可见班级：一个工作簿里每班一张表，实现批量生成。"""
+    """一场Exam, 所有可见Class: 一个工作簿里每班一张表, 实现批量生成。"""
     from openpyxl import Workbook
 
     user, cat, redirect = require_admin(request, db)
@@ -396,17 +396,17 @@ def report_all_xlsx(request: Request, kaoshi_id: int = 0, db: Session = Depends(
         return redirect
     exam = _exam(db, kaoshi_id)
     if exam is None:
-        return fail("考试不存在")
+        return fail("Exam not found")
 
     scope = data_scope(db, user)
     banjis = _banji_options(db, scope)
     if not banjis:
-        return fail("没有可导出的班级")
+        return fail("No class to export")
 
     wb = Workbook()
     ws0 = wb.active
-    ws0.title = "汇总"
-    ws0.append(["班级", "实考人数", "总分均分", "高风险", "中风险", "关注"])
+    ws0.title = "Summary"
+    ws0.append(["Class", "Taken", "Average total", "High", "Medium", "Watch"])
     total_generated = 0
     for b in banjis:
         data = class_report(db, kaoshi_id, b["id"])
@@ -414,11 +414,11 @@ def report_all_xlsx(request: Request, kaoshi_id: int = 0, db: Session = Depends(
             continue
         ws0.append([
             b["title"], len(data["students"]) - data["absent_total"], data["total_avg"],
-            data["summary"]["counts"]["高风险"], data["summary"]["counts"]["中风险"],
-            data["summary"]["counts"]["关注"],
+            data["summary"]["counts"]["High"], data["summary"]["counts"]["Medium"],
+            data["summary"]["counts"]["Watch"],
         ])
         # 工作表名最长 31 字符，且不能含 : \ / ? * [ ]
-        title = "".join(ch for ch in b["title"] if ch not in r':\/?*[]')[:28] or f"班{b['id']}"
+        title = "".join(ch for ch in b["title"] if ch not in r':\/?*[]')[:28] or f"Class {b['id']}"
         ws = wb.create_sheet(title)
         _write_class_sheet(ws, data)
         total_generated += 1

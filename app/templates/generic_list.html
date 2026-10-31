@@ -1,7 +1,7 @@
 {% extends "base_list.html" %}
 {% block nav %}
   <span class="layui-breadcrumb">
-    <a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a>
+    <a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a>
   </span>
 {% endblock %}
 
@@ -25,8 +25,8 @@
   </div>
   {% endfor %}
   <div class="layui-inline">
-    <button class="layui-btn" lay-submit lay-filter="searchSubmit"><i class="layui-icon">&#xe615;</i>搜索</button>
-    <button class="layui-btn layui-btn-primary" lay-submit lay-filter="resetSubmit">重置</button>
+    <button class="layui-btn" lay-submit lay-filter="searchSubmit"><i class="layui-icon">&#xe615;</i>Search</button>
+    <button class="layui-btn layui-btn-primary" lay-submit lay-filter="resetSubmit">Reset</button>
   </div>
 </div>
 {% endblock %}
@@ -47,7 +47,7 @@
   <a class="layui-btn layui-btn-xs" lay-event="{{ b.event }}">{{ b.title }}</a>
   {% endfor %}
   {% if page.can_delete %}
-  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">Delete</a>
   {% endif %}
 </script>
 {% endblock %}
@@ -58,7 +58,7 @@ layui.use(['table', 'form', 'mytable', 'jquery'], function () {
   var table = layui.table, form = layui.form, mytable = layui.mytable, $ = layui.jquery;
 
   var cols = {{ page.cols|tojson }};
-  cols.push({ fixed: 'right', width: {{ page.rowbar_width or 180 }}, align: 'center', toolbar: '#barDemo', title: '操作' });
+  cols.push({ fixed: 'right', width: {{ page.rowbar_width or 180 }}, align: 'center', toolbar: '#barDemo', title: 'Actions' });
   options.cols = [cols];
   options.where = form.val("search");
   userTable = table.render(options);
@@ -66,7 +66,7 @@ layui.use(['table', 'form', 'mytable', 'jquery'], function () {
   table.on('toolbar(mytable)', function (obj) {
     switch (obj.event) {
       case 'add':
-        xadmin.open('新增', '{{ page.create_url }}', '760', '520');
+        xadmin.open('New', '{{ page.create_url }}', '760', '520');
         break;
       case 'delete':
         mytable.delAll(obj, '{{ page.delete_url }}', 'mytable');
@@ -84,7 +84,7 @@ layui.use(['table', 'form', 'mytable', 'jquery'], function () {
   table.on('tool(mytable)', function (obj) {
     switch (obj.event) {
       case 'edit':
-        xadmin.open('编辑', '{{ page.create_url }}?id=' + obj.data.id, '760', '520');
+        xadmin.open('Edit', '{{ page.create_url }}?id=' + obj.data.id, '760', '520');
         break;
       case 'del':
         mytable.del(obj, '{{ page.delete_url }}');

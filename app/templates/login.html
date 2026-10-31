@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>{{ webtitle }} - 登录</title>
+  <title>{{ webtitle }} - Sign in</title>
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8">
@@ -25,37 +25,37 @@
     <div class="login-sub">{{ danwei }}</div>
     <form class="layui-form" method="post" action="/login">
       <div class="layui-form-item">
-        <label class="layui-form-label" style="width:60px;">身份</label>
+        <label class="layui-form-label" style="width:60px;">Role</label>
         <div class="layui-input-block" style="margin-left:90px;">
           <select name="category" lay-filter="category">
-            <option value="admin" selected>管理员 / 教师</option>
-            <option value="student">学生</option>
+            <option value="admin" selected>Administrator / Teacher</option>
+            <option value="student">Student</option>
           </select>
         </div>
       </div>
       <div class="layui-form-item">
-        <label class="layui-form-label" style="width:60px;">帐号</label>
+        <label class="layui-form-label" style="width:60px;">Account</label>
         <div class="layui-input-block" style="margin-left:90px;">
-          <input type="text" name="username" required lay-verify="required" placeholder="用户名 / 手机号 / 身份证号"
+          <input type="text" name="username" required lay-verify="required" placeholder="Username / phone / ID number"
                  autocomplete="off" class="layui-input">
         </div>
       </div>
       <div class="layui-form-item">
-        <label class="layui-form-label" style="width:60px;">密码</label>
+        <label class="layui-form-label" style="width:60px;">Password</label>
         <div class="layui-input-block" style="margin-left:90px;">
-          <input type="password" name="password" required lay-verify="required" placeholder="密码"
+          <input type="password" name="password" required lay-verify="required" placeholder="Password"
                  autocomplete="off" class="layui-input">
         </div>
       </div>
       <div class="layui-form-item">
-        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="login">登 录</button>
+        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="login">Sign in</button>
       </div>
       {% if error %}
       <div style="color:#e54d42;font-size:13px;text-align:center;">{{ error }}</div>
       {% endif %}
       <div style="margin-top:14px;color:#888;font-size:12px;line-height:1.8;text-align:center;">
-        演示帐号：admin / 123456（超级管理员）<br>
-        教师：wanglaoshi / 123456　学生：身份证号 / 123456
+        Demo account: admin / 123456 (administrator)<br>
+        Teacher: wanglaoshi / 123456  Student: ID number / 123456
       </div>
     </form>
   </div>

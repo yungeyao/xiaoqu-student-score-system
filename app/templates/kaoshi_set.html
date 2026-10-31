@@ -16,34 +16,34 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
   <div class="toolbar">
     <div class="layui-form">
       <div class="layui-inline">
-        <label class="layui-form-label" style="width:70px;">入学年</label>
+        <label class="layui-form-label" style="width:70px;">Cohort</label>
         <div class="layui-input-inline" style="width:130px;">
           <select id="ruxuenian">
-            <option value="">请选择</option>
-            {% for g in grades %}<option value="{{ g }}">{{ g }} 级</option>{% endfor %}
+            <option value="">Select</option>
+            {% for g in grades %}<option value="{{ g }}">Grade {{ g }}</option>{% endfor %}
           </select>
         </div>
       </div>
       <div class="layui-inline">
-        <button type="button" class="layui-btn layui-btn-normal" id="btnInit">初始化该年级学科</button>
-        <button type="button" class="layui-btn" id="btnSave">保存分数线</button>
+        <button type="button" class="layui-btn layui-btn-normal" id="btnInit">Initialize subjects</button>
+        <button type="button" class="layui-btn" id="btnSave">Save thresholds</button>
       </div>
       <div class="layui-inline" style="color:#888;font-size:12px;">
-        满分 / 优秀 / 良好 / 及格 分数线决定统计口径
+        Full mark / excellent / good / pass thresholds define the statistics
       </div>
     </div>
   </div>
 
   <div id="grid" style="margin-top:10px;">
-    <div class="empty">选择入学年后点「初始化该年级学科」</div>
+    <div class="empty">Select a cohort year, then click Initialize Subjects</div>
   </div>
 </div>
 
@@ -54,16 +54,16 @@ layui.use(['form', 'layer'], function () {
 
   function load() {
     $.post('/api/kaoshi/set_list', { kaoshi_id: KID }, function (res) {
-      if (!res.data.length) { $('#grid').html('<div class="empty">还没有配置学科</div>'); return; }
-      var html = '<table class="layui-table"><thead><tr><th>入学年</th><th>年级</th><th>学科</th>'
-        + '<th>满分</th><th>优秀线</th><th>良好线</th><th>及格线</th><th>操作</th></tr></thead><tbody>';
+      if (!res.data.length) { $('#grid').html('<div class="empty">No subjects configured</div>'); return; }
+      var html = '<table class="layui-table"><thead><tr><th>Cohort</th><th>Grade</th><th>Subject</th>'
+        + '<th>Full mark</th><th>Excellent line</th><th>Good line</th><th>Pass line</th><th>Actions</th></tr></thead><tbody>';
       $.each(res.data, function (i, r) {
         html += '<tr data-id="' + r.id + '"><td>' + r.ruxuenian + '</td><td>' + r.nianjiname + '</td><td>' + r.subject_name + '</td>'
           + '<td><input data-f="manfen" value="' + r.manfen + '"></td>'
           + '<td><input data-f="youxiu" value="' + r.youxiu + '"></td>'
           + '<td><input data-f="lianghao" value="' + r.lianghao + '"></td>'
           + '<td><input data-f="jige" value="' + r.jige + '"></td>'
-          + '<td><button class="layui-btn layui-btn-xs layui-btn-danger" onclick="delRow(' + r.id + ')">删除</button></td></tr>';
+          + '<td><button class="layui-btn layui-btn-xs layui-btn-danger" onclick="delRow(' + r.id + ')">Delete</button></td></tr>';
       });
       html += '</tbody></table>';
       $('#grid').html(html);
@@ -71,7 +71,7 @@ layui.use(['form', 'layer'], function () {
   }
 
   window.delRow = function (id) {
-    layer.confirm('确定删除该学科配置？', function () {
+    layer.confirm('Delete this subject configuration?', function () {
       $.ajax({ url: '/api/kaoshi/set_delete', type: 'DELETE', data: { id: id },
         success: function (r) { layer.msg(r.msg); load(); }, dataType: 'json' });
     });
@@ -79,7 +79,7 @@ layui.use(['form', 'layer'], function () {
 
   $('#btnInit').on('click', function () {
     var rn = $('#ruxuenian').val();
-    if (!rn) { layer.msg('请选择入学年'); return; }
+    if (!rn) { layer.msg('SelectCohort'); return; }
     $.post('/api/kaoshi/set_init', { kaoshi_id: KID, ruxuenian: rn }, function (res) {
       layer.msg(res.msg); load();
     }, 'json');
@@ -87,7 +87,7 @@ layui.use(['form', 'layer'], function () {
 
   $('#btnSave').on('click', function () {
     var rows = $('#grid tbody tr');
-    if (!rows.length) { layer.msg('没有可保存的行'); return; }
+    if (!rows.length) { layer.msg('Nothing to save'); return; }
     var n = 0, done = 0;
     rows.each(function () {
       var id = $(this).data('id');
@@ -96,7 +96,7 @@ layui.use(['form', 'layer'], function () {
       n++;
       $.post('/api/kaoshi/set_save', data, function (r) {
         done++;
-        if (done === n) layer.msg('已保存 ' + done + ' 行');
+        if (done === n) layer.msg('Saved ' + done + ' rows');
       }, 'json');
     });
   });

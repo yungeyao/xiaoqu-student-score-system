@@ -102,7 +102,7 @@ def _banzhuren_banji(db, teacher_id: int) -> list[int]:
 
 
 def _renke_banji(db, teacher_id: int) -> list[int]:
-    """任课教师能看到本学期所教班级。"""
+    """Teacher能看到本Semester所教Class。"""
     xueqi_ids = [
         x.id
         for x in db.scalars(select(Xueqi).where(Xueqi.delete_time.is_(None))).all()
@@ -118,7 +118,7 @@ def _renke_banji(db, teacher_id: int) -> list[int]:
 
 
 def apply_banji(q, column, auth: dict):
-    """把 my_quanxian 的结果注入到按班级过滤的查询上。"""
+    """把 my_quanxian 的结果注入到按Class过滤的Query上。"""
     if not auth.get("check"):
         return q
     return q.where(column.in_(auth.get("banji_id") or [0]))

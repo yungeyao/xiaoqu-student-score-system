@@ -21,7 +21,7 @@ Number = float
 
 
 def _clean(scores: Iterable[Optional[Number]]) -> list[Number]:
-    """剔除缺考（None），保留 0 分。"""
+    """剔除缺考 (None), 保留 0 分。"""
     return [float(s) for s in scores if s is not None]
 
 
@@ -32,7 +32,7 @@ def average(values: Sequence[Number]) -> Optional[Number]:
 
 
 def variance(values: Sequence[Number], sample: bool = True) -> Optional[Number]:
-    """方差。sample=True 用 n-1（样本方差），False 用 n（总体方差）。"""
+    """方差。sample=True 用 n-1 (样本方差), False 用 n (总体方差)。"""
     n = len(values)
     if n == 0 or (sample and n < 2):
         return None
@@ -42,7 +42,7 @@ def variance(values: Sequence[Number], sample: bool = True) -> Optional[Number]:
 
 
 def std_dev(values: Sequence[Number], sample: bool = True) -> Optional[Number]:
-    """标准差。默认按样本口径（n-1）。"""
+    """标准差。默认按样本口径 (n-1)。"""
     var = variance(values, sample=sample)
     if var is None:
         return None
@@ -80,11 +80,11 @@ def mode(values: Sequence[Number], min_freq: int = 3) -> Optional[str]:
     if top < min_freq:
         return None
     picked = sorted((v for v, c in counter.items() if c == top), reverse=True)
-    return "、".join(str(_fmt(v)) for v in picked)
+    return ", ".join(str(_fmt(v)) for v in picked)
 
 
 def _fmt(v: Number) -> object:
-    """整数去掉小数点，例如 90.0 -> 90。"""
+    """整数去掉小数点, 例如 90.0 -> 90。"""
     return int(v) if float(v).is_integer() else round(v, 1)
 
 
@@ -115,7 +115,7 @@ def rate(values: Sequence[Number], line: Optional[Number]) -> Optional[int]:
 
 
 def ratio(numerator: Optional[int], denominator: Optional[int]) -> Optional[Number]:
-    """百分比，分母为 0 或 None 时返回 None。"""
+    """百分比, 分母为 0 或 None 时返回 None。"""
     if numerator is None or not denominator:
         return None
     return round(numerator / denominator * 100, 2)

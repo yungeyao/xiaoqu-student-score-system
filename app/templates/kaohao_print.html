@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>试卷标签 - {{ kaoshi.title if kaoshi else '' }}</title>
+  <title>Label Sheet - {{ kaoshi.title if kaoshi else '' }}</title>
   <style>
     body { font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 12px; }
     .label {
@@ -19,8 +19,8 @@
 </head>
 <body>
 <div class="noprint">
-  <button onclick="window.print()">打印</button>
-  <span style="margin-left:12px;color:#666;font-size:13px;">共 {{ labels|length }} 个标签</span>
+  <button onclick="window.print()">Print</button>
+  <span style="margin-left:12px;color:#666;font-size:13px;">Total {{ labels|length }} labels</span>
 </div>
 {% for l in labels %}
 <div class="label">
@@ -30,7 +30,7 @@
   <div class="ex">{{ kaoshi.title if kaoshi else '' }}</div>
 </div>
 {% else %}
-<div style="padding:40px;color:#999;">本场考试还没有考号</div>
+<div style="padding:40px;color:#999;">No exam numbers for this exam</div>
 {% endfor %}
 </body>
 </html>

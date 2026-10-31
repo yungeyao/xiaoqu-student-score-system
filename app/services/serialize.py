@@ -1,4 +1,4 @@
-"""把模型对象序列化成前端要的字典，并解析下拉选项 / 外键显示名。"""
+"""把模型对象序列化成前端要的字典, 并解析下拉选项 / 外键显示名。"""
 from __future__ import annotations
 
 from typing import Optional
@@ -8,7 +8,7 @@ from sqlalchemy import select
 from ..models import Admin, Banji, Category, Course, School, Student, Subject, Teacher, Xueqi
 from ..models.base import ts_to_str
 
-SEX_LABELS = {0: "女", 1: "男", 2: "未知"}
+SEX_LABELS = {0: "Female", 1: "Male", 2: "Unknown"}
 
 SEX_OPTIONS = [{"value": k, "label": v} for k, v in SEX_LABELS.items()]
 

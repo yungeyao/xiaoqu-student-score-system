@@ -78,11 +78,11 @@ def generate(kaoshi_id: int, banji_ids: list[int], db=None) -> dict:
             db.close()
 
 
-GRADES = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]
+GRADES = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]
 
 
 def _nianji_name(ruxuenian) -> str:
-    """由入学年推算年级名。这里按小学 6 年制、以当年 9 月为分界粗略估算。"""
+    """由Cohort推算Grade名。这里按Primary school 6 年制, 以当年 9 月为分界粗略估算。"""
     if not ruxuenian:
         return ""
     from datetime import datetime
@@ -92,11 +92,11 @@ def _nianji_name(ruxuenian) -> str:
     grade = year - int(ruxuenian) + 1
     if 1 <= grade <= len(GRADES):
         return GRADES[grade - 1]
-    return f"{grade}年级" if grade > 0 else ""
+    return f"{grade}Grade" if grade > 0 else ""
 
 
 def delete_by_kaoshi(kaoshi_id: int, db) -> int:
-    """清空某场考试的考号（连带成绩由调用方处理）。"""
+    """清空某场Exam的Exam no. (连带Grade由调用方处理)。"""
     rows = db.scalars(select(Kaohao).where(Kaohao.kaoshi_id == kaoshi_id)).all()
     for r in rows:
         db.delete(r)

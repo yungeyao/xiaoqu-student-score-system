@@ -9,6 +9,10 @@
   <link rel="stylesheet" href="{{ XADMIN }}/css/font.css">
   <link rel="stylesheet" href="{{ XADMIN }}/css/xadmin.css">
   <link rel="stylesheet" href="{{ XADMIN }}/css/theme2222.min.css">
+  <style>
+    /* The English site name is longer than the original Chinese one. */
+    .container .logo a { width: 250px; font-size: 14px; }
+  </style>
   <script src="{{ XADMIN }}/lib/layui/layui.js" charset="utf-8"></script>
   <script src="{{ XADMIN }}/js/xadmin.js"></script>
   <script>var is_remember = false;</script>
@@ -16,17 +20,17 @@
 <body class="index">
 <div class="container">
   <div class="logo"><a href="/">{{ webtitle }}</a></div>
-  <div class="left_open"><a><i title="展开左侧栏" class="iconfont">&#xe699;</i></a></div>
+  <div class="left_open"><a><i title="Expand sidebar" class="iconfont">&#xe699;</i></a></div>
   <ul class="layui-nav left fast-add" lay-filter="">
     <li class="layui-nav-item">
-      <a href="javascript:;">快捷操作</a>
+      <a href="javascript:;">Quick actions</a>
       <dl class="layui-nav-child">
-        <dd><a onclick="xadmin.open('成绩录入','/luru','','',true)">
-          <i class="layui-icon layui-icon-edit"></i>在线录入成绩</a></dd>
-        <dd><a onclick="xadmin.open('考勤录入','/attendance','','',true)">
-          <i class="layui-icon layui-icon-form"></i>录入考勤</a></dd>
-        <dd><a onclick="xadmin.open('添加学生','/student/create')">
-          <i class="layui-icon layui-icon-username"></i>添加学生</a></dd>
+        <dd><a onclick="xadmin.open('Grade entry','/luru','','',true)">
+          <i class="layui-icon layui-icon-edit"></i>Enter grades</a></dd>
+        <dd><a onclick="xadmin.open('Attendance','/attendance','','',true)">
+          <i class="layui-icon layui-icon-form"></i>Record attendance</a></dd>
+        <dd><a onclick="xadmin.open('Add student','/student/create')">
+          <i class="layui-icon layui-icon-username"></i>Add student</a></dd>
       </dl>
     </li>
   </ul>
@@ -34,8 +38,8 @@
     <li class="layui-nav-item">
       <a href="javascript:;">{{ user.xingming }}</a>
       <dl class="layui-nav-child">
-        <dd><a onclick="xadmin.open('修改密码','/password/edit','400','280')">修改密码</a></dd>
-        <dd><a href="/logout">退出登录</a></dd>
+        <dd><a onclick="xadmin.open('Change password','/password/edit','400','280')">Change password</a></dd>
+        <dd><a href="/logout">Sign out</a></dd>
       </dl>
     </li>
   </ul>
@@ -67,13 +71,13 @@
 <div class="page-content">
   <div class="layui-tab tab" lay-filter="xbs_tab" lay-allowclose="false">
     <ul class="layui-tab-title">
-      <li class="home"><i class="layui-icon">&#xe68e;</i>我的桌面</li>
+      <li class="home"><i class="layui-icon">&#xe68e;</i>My Dashboard</li>
     </ul>
     <div class="layui-unselect layui-form-select layui-form-selected" id="tab_right">
       <dl>
-        <dd data-type="this">关闭当前</dd>
-        <dd data-type="other">关闭其它</dd>
-        <dd data-type="all">关闭全部</dd>
+        <dd data-type="this">Close current</dd>
+        <dd data-type="other">Close others</dd>
+        <dd data-type="all">Close all</dd>
       </dl>
     </div>
     <div class="layui-tab-content">

@@ -19,9 +19,9 @@ DB_URL = f"sqlite:///{DATA_DIR / 'cj.db'}"
 class Site:
     """站点基础信息与功能开关。"""
 
-    webtitle = "学生管理系统"
+    webtitle = "Student Management System"
     version = "1.0.0"
-    danwei = "示例实验小学"
+    danwei = "Sample Primary School"
 
     # 是否维护中
     weihu = False
@@ -49,7 +49,7 @@ class Auth:
 
 
 # 学段年级名称
-GRADELIST = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]
+GRADELIST = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]
 
 # 会话签名密钥：优先取环境变量 CJ_SECRET_KEY；否则在 data/ 下持久化一份随机密钥，
 # 首次启动生成、之后复用，既不在仓库里写死密钥，重启后也不会把所有人踢下线。

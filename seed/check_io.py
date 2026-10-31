@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""考号生成 + Excel 导入导出 往返验证"""
+"""Exam no.生成 + Excel 导入导出 往返验证"""
 import http.cookiejar
 import io
 import json
@@ -42,28 +42,28 @@ from app.models import Banji, Chengji, Kaohao  # noqa: E402
 db = SessionLocal()
 db.execute(delete(Kaohao).where(Kaohao.kaoshi_id == 1))
 db.commit()
-print("清空后考试1考号数:",
+print("Exam 1 numbers after clearing:",
       db.scalar(select(func.count()).select_from(Kaohao).where(Kaohao.kaoshi_id == 1)))
 all_bj = [b[0] for b in db.execute(select(Banji.id).order_by(Banji.id)).all()]
 db.close()
 
-print("生成考号:", post("/api/kaohao/generate",
+print("Generate exam numbers:", post("/api/kaohao/generate",
                     {"kaoshi_id": 1, "banji_ids": ",".join(str(x) for x in all_bj)}))
-print("重复生成(幂等):", post("/api/kaohao/generate",
+print("Regenerate (idempotent):", post("/api/kaohao/generate",
                         {"kaoshi_id": 1, "banji_ids": ",".join(str(x) for x in all_bj)}))
 db = SessionLocal()
 n = db.scalar(select(func.count()).select_from(Kaohao).where(Kaohao.kaoshi_id == 1))
 kh = db.scalars(select(Kaohao).where(Kaohao.kaoshi_id == 1).order_by(Kaohao.id).limit(3)).all()
-print(f"生成后 {n} 条，样例:", [(k.kaohao, "班" + str(k.banji_id), "序号" + str(k.paixu)) for k in kh])
+print(f"After generation {n} rows, sample:", [(k.kaohao, "class " + str(k.banji_id), "seat " + str(k.paixu)) for k in kh])
 dup = db.execute(
     select(Kaohao.kaohao, func.count()).where(Kaohao.kaoshi_id == 1)
     .group_by(Kaohao.kaohao).having(func.count() > 1)).all()
-print("考号重复情况:", dup or "无重复")
+print("Duplicate exam numbers:", dup or "no duplicates")
 db.close()
 
 # ---------------- 2 导出
 blob = op.open(BASE + "/api/luru/export?kaoshi_id=1").read()
-print(f"\n导出 xlsx: {len(blob)} 字节，PK 签名={blob[:2] == b'PK'}")
+print(f"\nExported xlsx: {len(blob)} bytes, PK signature={blob[:2] == b'PK'}")
 tpl = TMPDIR / "_tpl.xlsx"
 tpl.write_bytes(blob)
 
@@ -73,22 +73,22 @@ import openpyxl  # noqa: E402
 wb = openpyxl.load_workbook(tpl)
 ws = wb.active
 hdr = [c.value for c in ws[1]]
-print("表头:", hdr)
-cols = [i for i, h in enumerate(hdr, 1) if h and "语文" in str(h)]
+print("Header:", hdr)
+cols = [i for i, h in enumerate(hdr, 1) if h and "Chinese" in str(h)]
 target_row, expect = 2, 55.5
 if cols:
     ws.cell(row=target_row, column=cols[0]).value = expect
-    print(f"改写第{target_row}行「{hdr[cols[0] - 1]}」= {expect}")
+    print(f"Rewrote row {target_row}, column '{hdr[cols[0] - 1]}' = {expect}")
 wbc = TMPDIR / "_tpl2.xlsx"
 wb.save(wbc)
 
 # 记录该行对应的学生考号，便于回查
 key_col = None
 for i, h in enumerate(hdr, 1):
-    if h and "考号" in str(h):
+    if h and "Exam no." in str(h):
         key_col = i
 kh_key = ws.cell(row=target_row, column=key_col).value if key_col else None
-print("该行考号:", kh_key)
+print("Exam number of that row:", kh_key)
 
 boundary = uuid.uuid4().hex
 body = io.BytesIO()
@@ -104,7 +104,7 @@ body.write(f"\r\n--{boundary}--\r\n".encode())
 req = urllib.request.Request(
     BASE + "/api/luru/import", data=body.getvalue(),
     headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
-print("导入结果:", op.open(req).read().decode()[:200])
+print("Import result:", op.open(req).read().decode()[:200])
 
 db = SessionLocal()
 got = db.execute(
@@ -112,5 +112,5 @@ got = db.execute(
     .where(Kaohao.kaoshi_id == 1, Kaohao.kaohao == kh_key, Chengji.subject_id == 1)
 ).first()
 db.close()
-print(f"回查考号 {kh_key} 语文 = {got}")
-print("往返一致:", got is not None and abs(float(got[0]) - expect) < 0.01)
+print(f"Re-query exam no. {kh_key} Chinese = {got}")
+print("round-trip consistent:", got is not None and abs(float(got[0]) - expect) < 0.01)

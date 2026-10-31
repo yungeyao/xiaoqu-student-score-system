@@ -31,7 +31,7 @@ def _cols(m: Module) -> list[dict]:
     for f in m.list_fields():
         if f.name == "status":
             cols.append(
-                {"field": "status", "title": "状态", "width": f.width, "templet": "#statusTpl"}
+                {"field": "status", "title": "Status", "width": f.width, "templet": "#statusTpl"}
             )
             continue
         col = {"field": f.name, "title": f.label, "width": f.width, "sort": True}
@@ -54,9 +54,9 @@ def _render_list(request, m: Module, db: Session, user):
         "delete_url": f"/api/{m.key}/delete",
         "status_url": f"/api/{m.key}/status",
         "cols": _cols(m),
-        "toolbar": [{"event": "add", "title": "新增"}, {"event": "delete", "title": "批量删除"}]
+        "toolbar": [{"event": "add", "title": "New"}, {"event": "delete", "title": "Bulk delete"}]
         + m.extra_toolbar,
-        "rowbar": m.rowbar or [{"event": "edit", "title": "编辑"}],
+        "rowbar": m.rowbar or [{"event": "edit", "title": "Edit"}],
         "can_delete": True,
         "search_fields": [
             {
@@ -70,7 +70,7 @@ def _render_list(request, m: Module, db: Session, user):
     }
     # 关键字搜索框：几乎每个列表都需要
     if m.search_fields:
-        page["search_fields"].insert(0, {"name": "searchval", "label": "关键字", "type": "text"})
+        page["search_fields"].insert(0, {"name": "searchval", "label": "Keyword", "type": "text"})
     return templates.TemplateResponse(request, "generic_list.html", {"request": request, "page": page}
     )
 
@@ -92,7 +92,7 @@ def _render_form(request, m: Module, db: Session, obj_id):
             }
         )
     page = {
-        "webtitle": ("编辑" if obj else "新增") + m.title,
+        "webtitle": ("Edit" if obj else "New") + m.title,
         "url": f"/api/{m.key}/save",
         "formpost": "POST",
         "fields": fields,
@@ -170,14 +170,14 @@ def _register(m: Module):
         obj.update_time = now_ts()
         db.commit()
         db.refresh(obj)
-        return ok("保存成功", {"id": obj.id})
+        return ok("Saved", {"id": obj.id})
 
     @router.delete(f"/api/{m.key}/delete")
     async def _delete(request: Request, id: str = "", db: Session = Depends(get_db)):
         # 优先取查询串，其次取表单体：直接 curl/fetch 调 DELETE 时常不带 body
         id_str = id or (await _async_form(request)).get("id", "")
         n = crud.soft_delete(db, m.model, str(id_str))
-        return ok(f"已删除 {n} 条") if n else fail("没有可删除的记录")
+        return ok(f"Deleted {n} rows") if n else fail("No record to delete")
 
     @router.post(f"/api/{m.key}/status")
     async def _status(request: Request, db: Session = Depends(get_db)):
@@ -186,11 +186,11 @@ def _register(m: Module):
         val = int_or(form, "value", 0)
         field_name = form.get("ziduan") or "status"
         if not hasattr(m.model, field_name):
-            return fail("字段不存在")
+            return fail("Field not found")
         return (
-            ok("已修改")
+            ok("Updated")
             if crud.set_status(db, m.model, oid, val, field_name)
-            else fail("记录不存在")
+            else fail("Record not found")
         )
 
 

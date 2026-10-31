@@ -45,12 +45,12 @@ def password_verify(plain: str, hashed: Optional[str]) -> bool:
 
 
 def make_session(user_id: int, category: str) -> str:
-    """category: admin（管理员/教师）| student（学生）。"""
+    """category: admin (管理员/教师)| student (学生)。"""
     return _signer.dumps({"uid": user_id, "cat": category})
 
 
 def read_session(token: Optional[str], max_age: int = SESSION_EXPIRE):
-    """返回 (user_id, category)，无效返回 None。"""
+    """返回 (user_id, category), 无效返回 None。"""
     if not token:
         return None
     try:

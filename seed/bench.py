@@ -22,20 +22,20 @@ BASE = "http://127.0.0.1:8000"
 
 # (名称, 方法, 路径, 表单数据, 采样次数)
 ENDPOINTS = [
-    ("健康检查 GET /healthz", "GET", "/healthz", None, 30),
-    ("工作台 GET /welcome", "GET", "/welcome", None, 30),
-    ("学生列表 POST /api/student/list", "POST", "/api/student/list",
+    ("GET /healthz (health check)", "GET", "/healthz", None, 30),
+    ("GET /welcome (dashboard)", "GET", "/welcome", None, 30),
+    ("POST /api/student/list", "POST", "/api/student/list",
      {"page": 1, "limit": 10}, 30),
-    ("班级统计表 POST /api/tongji/bj_list", "POST", "/api/tongji/bj_list",
+    ("POST /api/tongji/bj_list", "POST", "/api/tongji/bj_list",
      {"kaoshi_id": 1, "subject_id": 1}, 30),
-    ("统计图表 POST /api/tongji/chart", "POST", "/api/tongji/chart",
+    ("POST /api/tongji/chart", "POST", "/api/tongji/chart",
      {"kaoshi_id": 1, "level": "bj", "type": "avg"}, 30),
-    ("学业预警 POST /api/risk/list", "POST", "/api/risk/list",
+    ("Academic risk POST /api/risk/list", "POST", "/api/risk/list",
      {"kaoshi_id": 1, "banji_id": ""}, 20),
-    ("预警图表 POST /api/risk/chart", "POST", "/api/risk/chart",
+    ("POST /api/risk/chart", "POST", "/api/risk/chart",
      {"kaoshi_id": 1, "banji_id": ""}, 20),
-    ("班级报表 GET /report/banji", "GET", "/report/banji?kaoshi_id=1&banji_id=1", None, 20),
-    ("批量报表 GET /api/report/all.xlsx", "GET", "/api/report/all.xlsx?kaoshi_id=1", None, 10),
+    ("GET /report/banji (printable)", "GET", "/report/banji?kaoshi_id=1&banji_id=1", None, 20),
+    ("GET /api/report/all.xlsx (batch)", "GET", "/api/report/all.xlsx?kaoshi_id=1", None, 10),
 ]
 
 
@@ -77,8 +77,8 @@ def main():
     client.request("POST", "/login", {"username": "admin", "password": "123456",
                                       "category": "admin"})
 
-    print(f"目标服务：{BASE}")
-    print(f"{'接口':<42}{'次数':>4}{'平均':>9}{'P50':>8}{'P95':>8}{'最大':>8}{'响应':>10}")
+    print(f"Target: {BASE}")
+    print(f"{'Endpoint':<42}{'n':>4}{'Mean':>9}{'P50':>8}{'P95':>8}{'Max':>8}{'Payload':>10}")
     print("-" * 92)
 
     results = []
@@ -106,7 +106,7 @@ def main():
 
     slowest = max(results, key=lambda r: r["p95"])
     print("-" * 92)
-    print(f"最慢接口：{slowest['name']}  P95={slowest['p95']:.0f}ms  响应 {slowest['size'] / 1024:.1f}KB")
+    print(f"Slowest: {slowest['name']}  P95={slowest['p95']:.0f}ms  payload {slowest['size'] / 1024:.1f}KB")
 
     # 数据规模
     try:
@@ -120,20 +120,20 @@ def main():
 
         db = SessionLocal()
         counts = {
-            "学生": Student, "班级": Banji, "教师": Teacher, "考试": Kaoshi,
-            "成绩": Chengji, "考号": Kaohao, "课程": Course,
-            "选课": Enrollment, "考勤": Attendance,
+            "Student": Student, "Class": Banji, "Teacher": Teacher, "Exam": Kaoshi,
+            "Grade": Chengji, "Exam no.": Kaohao, "Course": Course,
+            "Enrolment": Enrollment, "Attendance": Attendance,
         }
         print()
-        print("数据规模：")
+        print("Data volume:")
         for label, model in counts.items():
             n = db.scalar(select(func.count()).select_from(model))
             print(f"  {label:<4}{n:>8}")
         db.close()
         db_file = DATA_DIR / "cj.db"
-        print(f"  数据库文件 {db_file.stat().st_size / 1024 / 1024:.2f} MB")
+        print(f"  Database file {db_file.stat().st_size / 1024 / 1024:.2f} MB")
     except Exception as exc:  # pragma: no cover
-        print(f"（跳过数据规模统计：{exc}）")
+        print(f"(data volume skipped: {exc})")
 
 
 if __name__ == "__main__":

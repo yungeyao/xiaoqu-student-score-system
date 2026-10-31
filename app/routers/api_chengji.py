@@ -1,4 +1,4 @@
-"""成绩录入（在线 / 表格导入）与成绩查询。"""
+"""Grade entry (在线 / 表格导入)与GradeQuery。"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
@@ -29,7 +29,7 @@ def _scope(request: Request, db):
 
 
 def _visible_banjis(request: Request, db) -> list:
-    """按数据权限返回当前用户可见的班级。"""
+    """按数据权限返回当前用户可见的Class。"""
     from ..services.permission import data_scope
 
     user, _cat, _r = require_admin(request, db)
@@ -75,7 +75,7 @@ def luru_page(request: Request, kaoshi_id: int = 0, m: str = "online", db: Sessi
             "banjis": banjis,
             "kaoshi_id": kaoshi_id,
             "mode": m,
-            "page": {"webtitle": "成绩录入"},
+            "page": {"webtitle": "Grade entry"},
         },
     )
 
@@ -100,7 +100,7 @@ def chengji_page(request: Request, kaoshi_id: int = 0, db: Session = Depends(get
             "exams": exams,
             "banjis": banjis,
             "kaoshi_id": kaoshi_id,
-            "page": {"webtitle": "成绩查询"},
+            "page": {"webtitle": "GradeQuery"},
         },
     )
 
@@ -110,7 +110,7 @@ def chengji_page(request: Request, kaoshi_id: int = 0, db: Session = Depends(get
 
 @router.post("/api/luru/subjects")
 async def luru_subjects(request: Request, db: Session = Depends(get_db)):
-    """某场考试可选学科。"""
+    """某场Exam可选Subject。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     subs = _subjects(db, kid)
@@ -119,7 +119,7 @@ async def luru_subjects(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/luru/matrix")
 async def luru_matrix(request: Request, db: Session = Depends(get_db)):
-    """返回「学生 × 学科」的成绩矩阵，用于在线录入。"""
+    """返回「Student × Subject」的Grade矩阵, 用于Online entry。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     banji_id = int_or(form, "banji_id", 0)
@@ -163,7 +163,7 @@ async def luru_matrix(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/api/luru/save")
 async def luru_save(request: Request, db: Session = Depends(get_db)):
-    """保存一整屏成绩。scores 为 JSON 字符串：[{kaohao_id, subject_id, defen}]"""
+    """保存一整屏Grade。scores 为 JSON 字符串: [{kaohao_id, subject_id, defen}]"""
     import json
 
     form = await _form(request)
@@ -171,7 +171,7 @@ async def luru_save(request: Request, db: Session = Depends(get_db)):
     try:
         items = json.loads(raw)
     except (ValueError, TypeError):
-        return fail("数据格式错误")
+        return fail("Malformed data")
     user, cat, _ = require_admin(request, db)
     uid = user.id if user else 0
 
@@ -199,7 +199,7 @@ async def luru_save(request: Request, db: Session = Depends(get_db)):
         cj.update_time = now_ts()
         n += 1
     db.commit()
-    return ok(f"已保存 {n} 条成绩", {"count": n})
+    return ok(f"Saved {n} grade rows", {"count": n})
 
 
 # ================================================================== 表格导入导出
@@ -208,10 +208,10 @@ async def luru_save(request: Request, db: Session = Depends(get_db)):
 @router.get("/api/luru/export")
 def luru_export(kaoshi_id: int = 0, banji_id: int = 0, db: Session = Depends(get_db)):
     if not kaoshi_id:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     buf = chengji_io.export_template(kaoshi_id, banji_id or None, db)
     ks = db.get(Kaoshi, kaoshi_id)
-    name = f"{ks.title if ks else 'chengji'}_成绩采集表.xlsx"
+    name = f"{ks.title if ks else 'grades'}_grade_template.xlsx"
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -235,14 +235,14 @@ async def luru_import(
     user, cat, _ = require_admin(request, db)
     uid = user.id if user else 0
     if not kaoshi_id:
-        return fail("请先选择考试")
+        return fail("Select an exam first")
     content = await file.read()
     try:
         res = chengji_io.import_scores(kaoshi_id, content, uid, db)
     except Exception as e:  # noqa: BLE001
-        return fail(f"导入失败：{e}")
+        return fail(f"Import failed: {e}")
     err = res["err"]
-    return ok(res["success"] + (f"，{len(err)} 条异常" if err else ""), {"success": res["success"], "err": err[:50]})
+    return ok(res["success"] + (f" ({len(err)} rows with errors)" if err else ""), {"success": res["success"], "err": err[:50]})
 
 
 # ================================================================== 成绩查询
@@ -250,7 +250,7 @@ async def luru_import(
 
 @router.post("/api/chengji/list")
 async def chengji_list(request: Request, db: Session = Depends(get_db)):
-    """学生成绩清单：一行一个学生，一列一个学科。"""
+    """StudentGrade清单: 一行一个Student, 一列一个Subject。"""
     form = await _form(request)
     kid = int_or(form, "kaoshi_id", 0)
     banji_id = int_or(form, "banji_id")

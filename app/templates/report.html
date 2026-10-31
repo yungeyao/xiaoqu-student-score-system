@@ -19,7 +19,7 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
 </div>
 
 <div class="x-body">
@@ -27,27 +27,27 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:50px;">考试</label>
+          <label class="layui-form-label" style="width:50px;">Exam</label>
           <div class="layui-input-inline" style="width:240px;">
             <select id="kaoshi_id">
-              <option value="">请选择考试</option>
+              <option value="">Select an exam</option>
               {% for e in page.exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:50px;">班级</label>
+          <label class="layui-form-label" style="width:50px;">Class</label>
           <div class="layui-input-inline" style="width:210px;">
             <select id="banji_id">
-              <option value="">请选择班级</option>
+              <option value="">Select a class</option>
               {% for b in page.banjis %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnPrint">生成班级报表</button>
-          <button type="button" class="layui-btn" id="btnXlsx">导出本班 Excel</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnAll">批量导出全部班级</button>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnPrint">Generate class report</button>
+          <button type="button" class="layui-btn" id="btnXlsx">Export class Excel</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnAll">Export all classes</button>
         </div>
       </div>
     </form>
@@ -55,16 +55,16 @@
 
   <div class="cards">
     <div class="card">
-      <h4>班级成绩报表</h4>
-      <p>按考试 + 班级生成可直接打印/另存 PDF 的报表：学科统计、学生成绩明细、班内排名与预警名单。</p>
+      <h4>Class grade report</h4>
+      <p>Printable report per exam and class: subject statistics, student results, class ranks and the at-risk list.</p>
     </div>
     <div class="card">
-      <h4>单班 Excel</h4>
-      <p>三张表：成绩明细、学科统计、预警名单，方便教务汇总与上报。</p>
+      <h4>Class workbook</h4>
+      <p>Three sheets: results, subject statistics and the at-risk list — ready for summing up and reporting.</p>
     </div>
     <div class="card">
-      <h4>批量导出</h4>
-      <p>一场考试下所有可见班级一次导出：汇总表 + 每班一张工作表，无需逐个点。</p>
+      <h4>Batch export</h4>
+      <p>Export every visible class of one exam at once: a summary sheet plus one sheet per class.</p>
     </div>
   </div>
 </div>
@@ -82,8 +82,8 @@ layui.use(['form', 'layer'], function () {
   function check(needBanji) {
     var kid = $('#kaoshi_id').val();
     var bid = $('#banji_id').val();
-    if (!kid) { layer.msg('请选择考试'); return null; }
-    if (needBanji && !bid) { layer.msg('请选择班级'); return null; }
+    if (!kid) { layer.msg('Select an exam'); return null; }
+    if (needBanji && !bid) { layer.msg('Select a class'); return null; }
     return { kaoshi_id: kid, banji_id: bid };
   }
 
@@ -100,7 +100,7 @@ layui.use(['form', 'layer'], function () {
   $('#btnAll').on('click', function () {
     var p = check(false);
     if (!p) return;
-    layer.msg('正在生成，请稍候…', { time: 1200 });
+    layer.msg('Generating, please wait…', { time: 1200 });
     location.href = '/api/report/all.xlsx?kaoshi_id=' + p.kaoshi_id;
   });
 });

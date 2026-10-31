@@ -47,7 +47,7 @@ def login(
     if user is None or not password_verify(password, user.password):
         from ..main import templates
 
-        return templates.TemplateResponse(request, "login.html", {"request": request, "error": "帐号或密码不正确"}
+        return templates.TemplateResponse(request, "login.html", {"request": request, "error": "Incorrect account or password"}
         )
 
     user.login_count = (user.login_count or 0) + 1
@@ -85,14 +85,14 @@ def change_password(
 
     sess = read_session(request.cookies.get(SESSION_COOKIE))
     if not sess:
-        return {"val": 0, "msg": "请先登录"}
+        return {"val": 0, "msg": "Please sign in first"}
     uid, cat = sess
     model = Admin if cat == "admin" else Student
     user = db.get(model, uid)
     if not user or not password_verify(old_password, user.password):
-        return {"val": 0, "msg": "原密码不正确"}
+        return {"val": 0, "msg": "Current password is incorrect"}
     if len(new_password) < 6:
-        return {"val": 0, "msg": "新密码至少 6 位"}
+        return {"val": 0, "msg": "New password must be at least 6 characters"}
     user.password = password_hash(new_password)
     db.commit()
-    return {"val": 1, "msg": "密码已修改"}
+    return {"val": 1, "msg": "Password updated"}

@@ -121,7 +121,7 @@ class _Ctx:
 
 
 def tongji(kaoshi_id: int) -> dict:
-    """重算三级统计，返回各级写入的行数。"""
+    """重算三级统计, 返回各级写入的行数。"""
     with SessionLocal() as db:
         ctx = _Ctx(db, kaoshi_id)
         bj = _tj_banji(db, ctx)

@@ -67,135 +67,135 @@ def section(title):
 def main():
     admin = Client().login("admin", "123456")
 
-    section("1. 新页面可达")
+    section("1. New pages reachable")
     for path, size in [
         ("/course", 5000), ("/enrollment", 5000), ("/enrollment/batch", 1000),
         ("/attendance", 2000), ("/risk", 2000), ("/report", 1000),
     ]:
         body = admin.get(path, raw=True)
-        check(f"GET {path}", isinstance(body, bytes) and len(body) > size, f"{len(body)} 字节")
+        check(f"GET {path}", isinstance(body, bytes) and len(body) > size, f"{len(body)} bytes")
 
-    section("2. 课程与选课")
+    section("2. Courses and enrolment")
     res = admin.post("/api/course/list", {"page": 1, "limit": 10})
-    check("课程列表", res.get("code") == 0 and res.get("count") == 120, f"count={res.get('count')}")
+    check("course list", res.get("code") == 0 and res.get("count") == 120, f"count={res.get('count')}")
     res = admin.post("/api/enrollment/list", {"page": 1, "limit": 10})
-    check("选课列表", res.get("code") == 0 and res.get("count") == 2400,
+    check("enrolment list", res.get("code") == 0 and res.get("count") == 2400,
           f"count={res.get('count')}")
 
     course_id = admin.post("/api/course/list", {"page": 1, "limit": 1})["data"][0]["id"]
     res = admin.post("/api/enrollment/students", {"course_id": course_id})
     n_enrolled = res["data"]["enrolled"]
-    check("选课名单载入", res.get("val") == 1 and n_enrolled == 20, f"已选 {n_enrolled} 人")
+    check("enrolment list loaded", res.get("val") == 1 and n_enrolled == 20, f"{n_enrolled} students enrolled")
 
     # 批量选课：先只留 5 人，再恢复 20 人
     keep = [s["student_id"] for s in res["data"]["students"][:5]]
     res = admin.post("/api/enrollment/batch", {"course_id": course_id,
                                                "student_ids": json.dumps(keep)})
-    check("批量选课保存", res.get("val") == 1, res.get("msg", ""))
+    check("bulk enrolment saved", res.get("val") == 1, res.get("msg", ""))
     res = admin.post("/api/enrollment/students", {"course_id": course_id})
-    check("选课结果生效", res["data"]["enrolled"] == 5, f"{res['data']['enrolled']} 人")
+    check("enrolment applied", res["data"]["enrolled"] == 5, f"{res['data']['enrolled']}  students")
     all_ids = [s["student_id"] for s in admin.post(
         "/api/enrollment/students", {"course_id": course_id})["data"]["students"]]
     admin.post("/api/enrollment/batch", {"course_id": course_id,
                                          "student_ids": json.dumps(all_ids)})
     res = admin.post("/api/enrollment/students", {"course_id": course_id})
-    check("选课恢复", res["data"]["enrolled"] == 20, f"{res['data']['enrolled']} 人")
+    check("enrolment restored", res["data"]["enrolled"] == 20, f"{res['data']['enrolled']}  students")
 
-    section("3. 考勤录入")
+    section("3. Attendance")
     riqi = "2025-03-03"
     res = admin.post("/api/attendance/students", {"course_id": course_id, "riqi": riqi})
     students = res["data"]["students"]
-    check("载入考勤名单", res.get("val") == 1 and len(students) == 20, f"{len(students)} 人")
+    check("attendance list loaded", res.get("val") == 1 and len(students) == 20, f"{len(students)}  students")
     rows = [{"student_id": s["student_id"], "zhuangtai": 1 if i else 0, "beizhu": ""}
             for i, s in enumerate(students)]
     res = admin.post("/api/attendance/save", {"course_id": course_id, "riqi": riqi,
                                              "rows": json.dumps(rows)})
-    check("保存考勤", res.get("val") == 1, res.get("msg", ""))
+    check("Save attendance", res.get("val") == 1, res.get("msg", ""))
 
     res = admin.post("/api/attendance/students", {"course_id": course_id, "riqi": riqi})
     absent = sum(1 for s in res["data"]["students"] if s["zhuangtai"] == 0)
-    check("考勤已落库", res["data"]["students"][0]["saved"] is True and absent == 1,
-          f"缺勤 {absent} 人")
+    check("attendance persisted", res["data"]["students"][0]["saved"] is True and absent == 1,
+          f"Absent {absent}  students")
 
     res = admin.post("/api/attendance/save", {"course_id": course_id, "riqi": riqi,
                                              "rows": json.dumps(rows)})
-    check("重复保存不重复插入", "更新" in res.get("msg", ""), res.get("msg", ""))
+    check("re-saving does not duplicate", "updated" in res.get("msg", ""), res.get("msg", ""))
 
     res = admin.post("/api/attendance/stats", {"course_id": course_id})
     days = res["data"]["days"]
-    check("考勤统计", res.get("val") == 1 and len(days) >= 4, f"{len(days)} 天")
-    check("到课率计算", all("rate" in s for s in res["data"]["students"]),
-          f"{len(res['data']['students'])} 人")
+    check("attendance statistics", res.get("val") == 1 and len(days) >= 4, f"{len(days)} days")
+    check("attendance rate computed", all("rate" in s for s in res["data"]["students"]),
+          f"{len(res['data']['students'])}  students")
 
-    section("4. 学业预警")
+    section("4. Academic risk")
     exam_id = 1
     res = admin.post("/api/risk/list", {"kaoshi_id": exam_id, "banji_id": ""})
     rows = res["data"]
-    check("预警名单", res.get("code") == 0 and len(rows) == 480, f"{len(rows)} 人")
-    high = [r for r in rows if r["risk_level"] == "高风险"]
-    check("存在高风险学生", len(high) > 0, f"{len(high)} 人")
-    check("预警原因可解释", all(r["reasons"] for r in rows if r["risk_score"] > 0),
-          "命中规则的都有原因")
-    check("等级与分值一致", all(
-        (r["risk_score"] >= 5) == (r["risk_level"] == "高风险") for r in rows))
+    check("At-risk students", res.get("code") == 0 and len(rows) == 480, f"{len(rows)}  students")
+    high = [r for r in rows if r["risk_level"] == "High"]
+    check("high-risk students exist", len(high) > 0, f"{len(high)}  students")
+    check("every scored student has a reason", all(r["reasons"] for r in rows if r["risk_score"] > 0),
+          "all students that scored have reasons")
+    check("level matches score", all(
+        (r["risk_score"] >= 5) == (r["risk_level"] == "High") for r in rows))
 
     res = admin.post("/api/risk/summary", {"kaoshi_id": exam_id})
     s = res["data"]
-    check("预警汇总", s["total"] == 480 and abs(s["at_risk_rate"] - s["at_risk"] / 4.8) < 0.2,
-          f"预警 {s['at_risk']} 人 {s['at_risk_rate']}%")
+    check("risk summary", s["total"] == 480 and abs(s["at_risk_rate"] - s["at_risk"] / 4.8) < 0.2,
+          f"{s['at_risk']} at risk, {s['at_risk_rate']}%")
 
     res = admin.post("/api/risk/chart", {"kaoshi_id": exam_id})
-    check("预警图表", res.get("val") == 1 and len(res["data"]["categories"]) == 24,
-          f"{len(res['data']['categories'])} 个班")
+    check("risk chart", res.get("val") == 1 and len(res["data"]["categories"]) == 24,
+          f"{len(res['data']['categories'])} classes")
 
     blob = admin.get(f"/api/risk/export.xlsx?kaoshi_id={exam_id}", raw=True)
-    check("预警导出 xlsx", isinstance(blob, bytes) and blob[:2] == b"PK", f"{len(blob)} 字节")
+    check("risk export xlsx", isinstance(blob, bytes) and blob[:2] == b"PK", f"{len(blob)} bytes")
 
-    section("5. 报表生成")
+    section("5. Report generation")
     body = admin.get(f"/report/banji?kaoshi_id={exam_id}&banji_id=1", raw=True)
     text = body.decode("utf-8")
-    check("班级报表可渲染", "学生成绩明细" in text and "预警名单" in text,
-          f"{len(body)} 字节")
+    check("class report renders", "Student results" in text and "At-risk students" in text,
+          f"{len(body)} bytes")
     body = admin.get(f"/report/student?kaoshi_id={exam_id}&student_id=1", raw=True)
-    check("学生成绩单可渲染", "学生成绩单" in body.decode("utf-8"))
+    check("report card renders", "Report Card" in body.decode("utf-8"))
 
     blob = admin.get(f"/api/report/banji.xlsx?kaoshi_id={exam_id}&banji_id=1", raw=True)
-    check("单班报表 xlsx", isinstance(blob, bytes) and blob[:2] == b"PK", f"{len(blob)} 字节")
+    check("class workbook xlsx", isinstance(blob, bytes) and blob[:2] == b"PK", f"{len(blob)} bytes")
 
     blob = admin.get(f"/api/report/all.xlsx?kaoshi_id={exam_id}", raw=True)
-    check("批量报表 xlsx", isinstance(blob, bytes) and blob[:2] == b"PK" and len(blob) > 20000,
-          f"{len(blob)} 字节")
+    check("batch workbook xlsx", isinstance(blob, bytes) and blob[:2] == b"PK" and len(blob) > 20000,
+          f"{len(blob)} bytes")
     if isinstance(blob, bytes) and blob[:2] == b"PK":
         import io
 
         import openpyxl
 
         wb = openpyxl.load_workbook(io.BytesIO(blob))
-        check("批量报表含全部班级工作表", len(wb.sheetnames) == 25,
-              f"{len(wb.sheetnames)} 张表")
+        check("batch workbook has a sheet per class", len(wb.sheetnames) == 25,
+              f"{len(wb.sheetnames)} sheets")
 
-    section("6. 角色权限")
+    section("6. Role permissions")
     teacher = Client().login("wanglaoshi", "123456")
     res = teacher.post("/api/risk/list", {"kaoshi_id": exam_id, "banji_id": ""})
-    check("教师预警仅覆盖所教班级", len(res["data"]) == 240, f"{len(res['data'])} 人（12 个班）")
+    check("teacher risk list is limited to taught classes", len(res["data"]) == 240, f"{len(res['data'])} students (12 classes)")
 
     res = teacher.post("/api/risk/list", {"kaoshi_id": exam_id, "banji_id": 24})
-    check("教师越权查别的班被拒", res.get("val") == 0, res.get("msg", ""))
+    check("teacher blocked from another class", res.get("val") == 0, res.get("msg", ""))
 
     body = teacher.get("/api/report/all.xlsx?kaoshi_id=1", raw=True)
-    check("教师批量导出仅限可见班级",
-          isinstance(body, bytes) and body[:2] == b"PK", f"{len(body)} 字节")
+    check("teacher batch export limited to visible classes",
+          isinstance(body, bytes) and body[:2] == b"PK", f"{len(body)} bytes")
 
     student = Client().login("210278200606087012", "123456", "student")
     with urllib.request.urlopen(
         urllib.request.Request(BASE + "/risk"), timeout=10
     ) as r:
         final_url = r.geturl()
-    check("学生无法进入预警页", "/login" in final_url or r.status == 200, final_url)
+    check("student cannot open the risk page", "/login" in final_url or r.status == 200, final_url)
 
     print()
     print("=" * 60)
-    print("结果")
+    print("Result")
     print("=" * 60)
     print(f"  PASS {PASS} / FAIL {FAIL}")
     return 0 if FAIL == 0 else 1

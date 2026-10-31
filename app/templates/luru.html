@@ -22,27 +22,27 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
-  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">刷新</a>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px;" onclick="location.reload()">Refresh</a>
 </div>
 
 <div class="x-body">
   <div class="layui-tab layui-tab-brief" lay-filter="mode">
     <ul class="layui-tab-title">
-      <li class="{% if mode != 'biaolu' %}layui-this{% endif %}">在线录入</li>
-      <li class="{% if mode == 'biaolu' %}layui-this{% endif %}">表格录入</li>
+      <li class="{% if mode != 'biaolu' %}layui-this{% endif %}">Online entry</li>
+      <li class="{% if mode == 'biaolu' %}layui-this{% endif %}">Spreadsheet entry</li>
     </ul>
     <div class="layui-tab-content">
-      <!-- 在线录入 -->
+      <!-- Online entry -->
       <div class="layui-tab-item {% if mode != 'biaolu' %}layui-show{% endif %}">
         <div class="toolbar">
           <form class="layui-form" lay-filter="pick">
             <div class="layui-form-item">
               <div class="layui-inline">
-                <label class="layui-form-label" style="width:60px;">考试</label>
+                <label class="layui-form-label" style="width:60px;">Exam</label>
                 <div class="layui-input-inline" style="width:180px;">
                   <select name="kaoshi_id" id="kaoshi_id" lay-filter="kaoshi_id">
-                    <option value="">请选择</option>
+                    <option value="">Select</option>
                     {% for e in exams %}
                     <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
                     {% endfor %}
@@ -50,10 +50,10 @@
                 </div>
               </div>
               <div class="layui-inline">
-                <label class="layui-form-label" style="width:60px;">班级</label>
+                <label class="layui-form-label" style="width:60px;">Class</label>
                 <div class="layui-input-inline" style="width:150px;">
                   <select name="banji_id" id="banji_id" lay-filter="banji_id">
-                    <option value="">请选择</option>
+                    <option value="">Select</option>
                     {% for b in banjis %}
                     <option value="{{ b.id }}">{{ b.title }}</option>
                     {% endfor %}
@@ -61,28 +61,28 @@
                 </div>
               </div>
               <div class="layui-inline">
-                <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">载入名单</button>
-                <button type="button" class="layui-btn" id="btnSave"><i class="layui-icon">&#xe605;</i>保存成绩</button>
-                <span style="margin-left:12px;color:#888;font-size:12px;">留空表示缺考；输入 0 表示零分</span>
+                <button type="button" class="layui-btn layui-btn-normal" id="btnLoad">Load list</button>
+                <button type="button" class="layui-btn" id="btnSave"><i class="layui-icon">&#xe605;</i>Save grades</button>
+                <span style="margin-left:12px;color:#888;font-size:12px;">Leave blank for absent, enter 0 for a zero score</span>
               </div>
             </div>
           </form>
         </div>
         <div id="grid" style="margin-top:10px;">
-          <div class="empty">请先选择考试和班级，然后点「载入名单」</div>
+          <div class="empty">Select an exam and a class, then click Load List</div>
         </div>
       </div>
 
-      <!-- 表格录入 -->
+      <!-- Spreadsheet entry -->
       <div class="layui-tab-item {% if mode == 'biaolu' %}layui-show{% endif %}">
         <div class="toolbar">
           <form class="layui-form" lay-filter="pick2">
             <div class="layui-form-item">
               <div class="layui-inline">
-                <label class="layui-form-label" style="width:60px;">考试</label>
+                <label class="layui-form-label" style="width:60px;">Exam</label>
                 <div class="layui-input-inline" style="width:180px;">
                   <select name="kaoshi_id2" id="kaoshi_id2">
-                    <option value="">请选择</option>
+                    <option value="">Select</option>
                     {% for e in exams %}
                     <option value="{{ e.id }}" {% if e.id == kaoshi_id %}selected{% endif %}>{{ e.title }}</option>
                     {% endfor %}
@@ -90,10 +90,10 @@
                 </div>
               </div>
               <div class="layui-inline">
-                <label class="layui-form-label" style="width:60px;">班级</label>
+                <label class="layui-form-label" style="width:60px;">Class</label>
                 <div class="layui-input-inline" style="width:150px;">
                   <select name="banji_id2" id="banji_id2">
-                    <option value="">全部班级</option>
+                    <option value="">All classes</option>
                     {% for b in banjis %}
                     <option value="{{ b.id }}">{{ b.title }}</option>
                     {% endfor %}
@@ -101,18 +101,18 @@
                 </div>
               </div>
               <div class="layui-inline">
-                <button type="button" class="layui-btn layui-btn-primary" id="btnDownload">下载采集表</button>
-                <button type="button" class="layui-btn layui-btn-warm" id="btnUpload">上传成绩表</button>
+                <button type="button" class="layui-btn layui-btn-primary" id="btnDownload">Download template</button>
+                <button type="button" class="layui-btn layui-btn-warm" id="btnUpload">Upload grades</button>
               </div>
             </div>
           </form>
         </div>
         <div style="margin-top:12px;padding:14px 18px;background:#fff;border:1px solid #eee;color:#666;font-size:13px;line-height:1.9;">
-          <b>使用说明</b><br>
-          1. 点「下载采集表」导出 Excel，表格含考号、姓名、班级和各学科列。<br>
-          2. 在 Excel 中填写分数后保存。<br>
-          3. 点「上传成绩表」选择该文件导入；系统按「考号」匹配学生。<br>
-          4. 留空的单元格视为缺考，不计入统计。
+          <b>How to use</b><br>
+          1. Download the template: the Excel file lists exam numbers, names, classes and one column per subject.<br>
+          2. Fill in the scores in Excel and save the file.<br>
+          3. Click Upload grades and pick the file; rows are matched by exam number.<br>
+          4. Blank cells are treated as absent and excluded from the statistics.
         </div>
       </div>
     </div>
@@ -128,13 +128,13 @@ layui.use(['form', 'layer', 'element', 'upload'], function () {
 
   function loadMatrix() {
     var kid = $('#kaoshi_id').val(), bid = $('#banji_id').val();
-    if (!kid || !bid) { layer.msg('请选择考试和班级'); return; }
+    if (!kid || !bid) { layer.msg('Select an exam and a class'); return; }
     $.post('/api/luru/matrix', { kaoshi_id: kid, banji_id: bid }, function (res) {
       if (res.val != 1) { layer.msg(res.msg); return; }
       var d = res.data;
-      if (!d.rows.length) { $('#grid').html('<div class="empty">该班级尚未生成考号，请先到「考号管理」生成</div>'); return; }
+      if (!d.rows.length) { $('#grid').html('<div class="empty">No exam numbers for this class yet — generate them under Exam Numbers</div>'); return; }
       var html = '<table id="scoreTable"><thead><tr>'
-        + '<th style="width:50px;">序号</th><th style="width:90px;">考号</th><th style="width:90px;">姓名</th>';
+        + '<th style="width:50px;">No.</th><th style="width:90px;">Exam no.</th><th style="width:90px;">Name</th>';
       $.each(d.subjects, function (i, s) { html += '<th>' + s.title + '</th>'; });
       html += '</tr></thead><tbody>';
       $.each(d.rows, function (i, r) {
@@ -157,7 +157,7 @@ layui.use(['form', 'layer', 'element', 'upload'], function () {
       var v = $(this).val();
       items.push({ kaohao_id: $(this).data('kh'), subject_id: $(this).data('sid'), defen: v === '' ? null : v });
     });
-    if (!items.length) { layer.msg('请先载入名单'); return; }
+    if (!items.length) { layer.msg('Load the list first'); return; }
     $.post('/api/luru/save', { scores: JSON.stringify(items) }, function (res) {
       layer.msg(res.msg);
     }, 'json');
@@ -165,7 +165,7 @@ layui.use(['form', 'layer', 'element', 'upload'], function () {
 
   $('#btnDownload').on('click', function () {
     var kid = $('#kaoshi_id2').val(), bid = $('#banji_id2').val();
-    if (!kid) { layer.msg('请选择考试'); return; }
+    if (!kid) { layer.msg('Select an exam'); return; }
     location.href = '/api/luru/export?kaoshi_id=' + kid + '&banji_id=' + (bid || 0);
   });
 
@@ -173,13 +173,13 @@ layui.use(['form', 'layer', 'element', 'upload'], function () {
     elem: '#btnUpload', url: '/api/luru/import', accept: 'file', exts: 'xlsx|xls',
     before: function (obj) {
       var kid = $('#kaoshi_id2').val();
-      if (!kid) { layer.msg('请选择考试'); return false; }
+      if (!kid) { layer.msg('Select an exam'); return false; }
       this.data = { kaoshi_id: kid };
     },
     done: function (res) {
       layer.msg(res.msg);
       if (res.data && res.data.err && res.data.err.length) {
-        layer.open({ type: 1, title: '导入异常明细', area: ['520px', '340px'],
+        layer.open({ type: 1, title: 'Import errors', area: ['520px', '340px'],
           content: '<div style="padding:12px;font-size:12px;line-height:1.8;">' + res.data.err.join('<br>') + '</div>' });
       }
     }

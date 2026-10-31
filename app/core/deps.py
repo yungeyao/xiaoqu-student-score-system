@@ -1,4 +1,4 @@
-"""FastAPI 依赖项：当前登录用户。"""
+"""FastAPI 依赖项: 当前登录用户。"""
 from __future__ import annotations
 
 from fastapi import Depends, Request
@@ -21,7 +21,7 @@ def get_db():
 
 
 def current_user(request: Request, db: Session = Depends(get_db)):
-    """返回 (user, category)；未登录返回 (None, None)。"""
+    """返回 (user, category); Not signed in返回 (None, None)。"""
     token = request.cookies.get(SESSION_COOKIE)
     sess = read_session(token)
     if not sess:
@@ -33,7 +33,7 @@ def current_user(request: Request, db: Session = Depends(get_db)):
 
 
 def require_login(request: Request, db: Session = Depends(get_db)):
-    """未登录时重定向到登录页。"""
+    """Not signed in时重定向到登录页。"""
     user, cat = current_user(request, db)
     if not user:
         return None, None, RedirectResponse("/login", status_code=302)
@@ -41,7 +41,7 @@ def require_login(request: Request, db: Session = Depends(get_db)):
 
 
 def require_admin(request: Request, db: Session = Depends(get_db)):
-    """管理端：必须是 admin 身份。"""
+    """管理端: 必须Yes admin Role。"""
     user, cat = current_user(request, db)
     if not user or cat != "admin":
         return None, None, RedirectResponse("/login", status_code=302)
@@ -49,7 +49,7 @@ def require_admin(request: Request, db: Session = Depends(get_db)):
 
 
 def require_student(request: Request, db: Session = Depends(get_db)):
-    """学生端。"""
+    """Student端。"""
     user, cat = current_user(request, db)
     if not user or cat != "student":
         return None, None, RedirectResponse("/login", status_code=302)

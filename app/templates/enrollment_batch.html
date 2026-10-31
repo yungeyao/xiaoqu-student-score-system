@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="x-nav">
-  <span class="layui-breadcrumb"><a href="/">首页</a><a><cite>{{ page.webtitle }}</cite></a></span>
+  <span class="layui-breadcrumb"><a href="/">Home</a><a><cite>{{ page.webtitle }}</cite></a></span>
 </div>
 
 <div class="x-body">
@@ -25,10 +25,10 @@
     <form class="layui-form" lay-filter="pick">
       <div class="layui-form-item">
         <div class="layui-inline">
-          <label class="layui-form-label" style="width:50px;">课程</label>
+          <label class="layui-form-label" style="width:50px;">Course</label>
           <div class="layui-input-inline" style="width:300px;">
             <select id="course_id">
-              <option value="">请选择课程</option>
+              <option value="">Select a course</option>
               {% for c in page.courses %}
               <option value="{{ c.id }}">{{ c.title }}</option>
               {% endfor %}
@@ -36,15 +36,15 @@
           </div>
         </div>
         <div class="layui-inline">
-          <button type="button" class="layui-btn layui-btn-normal" id="btnAll">全选</button>
-          <button type="button" class="layui-btn layui-btn-primary" id="btnNone">全不选</button>
-          <button type="button" class="layui-btn" id="btnSave">保存选课</button>
+          <button type="button" class="layui-btn layui-btn-normal" id="btnAll">Select all</button>
+          <button type="button" class="layui-btn layui-btn-primary" id="btnNone">Clear all</button>
+          <button type="button" class="layui-btn" id="btnSave">Save enrolment</button>
         </div>
       </div>
     </form>
   </div>
 
-  <div id="list" class="stu-list"><div class="empty">请选择课程</div></div>
+  <div id="list" class="stu-list"><div class="empty">Select a course</div></div>
 </div>
 
 <script>
@@ -58,14 +58,14 @@ function load() {
       html += '<label><input type="checkbox" class="stu" value="' + s.student_id + '"'
         + (s.enrolled ? ' checked' : '') + '> ' + s.xingming + '</label>';
     });
-    if (!html) html = '<div class="empty">该课程所在班级还没有学生</div>';
+    if (!html) html = '<div class="empty">No students in the class of this course</div>';
     $('#list').html(html);
   }, 'json');
 }
 
 function save() {
   var cid = $('#course_id').val();
-  if (!cid) { layer.msg('请选择课程'); return; }
+  if (!cid) { layer.msg('Select a course'); return; }
   var ids = $('.stu:checked').map(function () { return parseInt(this.value, 10); }).get();
   $.post('/api/enrollment/batch', { course_id: cid, student_ids: JSON.stringify(ids) },
     function (res) { layer.msg(res.msg); }, 'json');
